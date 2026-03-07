@@ -1,11 +1,17 @@
 import { SessionProvider } from '@/components/session-provider'
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
-import { Geist_Mono, Inter } from 'next/font/google'
+import { Geist_Mono, Inter, Noto_Sans_Ethiopic } from 'next/font/google'
 import './globals.css'
 
 const _inter = Inter({ subsets: ['latin'] });
 const _geistMono = Geist_Mono({ subsets: ['latin'] });
+const notoEthiopic = Noto_Sans_Ethiopic({
+  subsets: ['ethiopic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-ethiopic',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Herizon — A Safe Space for Every Mother',
@@ -36,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={notoEthiopic.variable}>
       <body className="font-sans antialiased">
         <SessionProvider>
           {children}

@@ -41,6 +41,7 @@ const CATEGORIES: { value: ArticleCategory; label: string; color: string }[] = [
   { value: 'parenting', label: 'Parenting', color: 'bg-purple-100 text-purple-700 border-purple-200' },
   { value: 'health', label: 'Health', color: 'bg-teal-100 text-teal-700 border-teal-200' },
   { value: 'nutrition', label: 'Nutrition', color: 'bg-green-100 text-green-700 border-green-200' },
+  { value: 'special_needs', label: 'Special Needs', color: 'bg-rose-100 text-rose-700 border-rose-200' },
 ];
 
 function categoryColor(cat: ArticleCategory) {

@@ -789,7 +789,6 @@ If symptoms persist on Omeprazole, ask for a paediatric gastroenterology referra
   }
 
   // ─── Done ─────────────────────────────────────────────────────────────────
-  console.log('\n✅  Seed complete!\n');
   console.log('  Accounts:');
   console.log('  ┌──────────────────────────────────────────┬──────────────────────────┬──────┐');
   console.log('  │ Email                                    │ Password                 │ Role │');

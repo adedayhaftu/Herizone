@@ -4,21 +4,23 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { translations } from '@/lib/i18n';
 import { useAppStore, type Article, type ArticleCategory } from '@/lib/store';
 import {
-  Baby,
-  Bookmark,
-  BookmarkCheck,
-  BookOpen,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  HeartPulse,
-  LayoutGrid,
-  Salad,
-  Search,
-  Tag,
-  X,
+    Baby,
+    Bookmark,
+    BookmarkCheck,
+    BookOpen,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Heart,
+    HeartPulse,
+    LayoutGrid,
+    Salad,
+    Search,
+    Tag,
+    X,
 } from 'lucide-react';
 import { useEffect, useState, type ComponentType } from 'react';
 
@@ -30,20 +32,14 @@ const C3 = '#D4B9B2';
 const CTA = 'linear-gradient(135deg, #c4706a, #a85550)';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const CATEGORIES: { value: ArticleCategory | 'all'; label: string; Icon: ComponentType<{ className?: string }> }[] = [
-  { value: 'all',        label: 'All Articles', Icon: LayoutGrid },
-  { value: 'pregnancy',  label: 'Pregnancy',    Icon: HeartPulse },
-  { value: 'parenting',  label: 'Parenting',    Icon: Baby },
-  { value: 'health',     label: 'Health',       Icon: BookOpen },
-  { value: 'nutrition',  label: 'Nutrition',    Icon: Salad },
-];
+// (CATEGORIES built inside LearnPage to be language-reactive)
 
 const CATEGORY_META: Record<ArticleCategory, { color: string; bg: string; border: string; accent: string }> = {
-  pregnancy: { color: 'text-pink-700',   bg: 'bg-pink-50',   border: 'border-pink-200',   accent: '#f9a8d4' },
-  parenting: { color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-200', accent: '#c4b5fd' },
-  health:    { color: 'text-teal-700',   bg: 'bg-teal-50',   border: 'border-teal-200',   accent: '#5eead4' },
-  nutrition: { color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200',  accent: '#86efac' },
+  pregnancy:     { color: 'text-pink-700',   bg: 'bg-pink-50',   border: 'border-pink-200',   accent: '#f9a8d4' },
+  parenting:     { color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-200', accent: '#c4b5fd' },
+  health:        { color: 'text-teal-700',   bg: 'bg-teal-50',   border: 'border-teal-200',   accent: '#5eead4' },
+  nutrition:     { color: 'text-green-700',  bg: 'bg-green-50',  border: 'border-green-200',  accent: '#86efac' },
+  special_needs: { color: 'text-rose-700',   bg: 'bg-rose-50',   border: 'border-rose-200',   accent: '#fda4af' },
 };
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -67,7 +63,8 @@ function ArticleCardSkeleton() {
 // ── ArticleDetail ─────────────────────────────────────────────────────────────
 
 function ArticleDetail({ article, onBack }: { article: Article; onBack: () => void }) {
-  const { currentUser, toggleBookmark } = useAppStore();
+  const { currentUser, toggleBookmark, language } = useAppStore();
+  const T = translations[language].learn;
   const isBookmarked = currentUser?.bookmarks.includes(article.id) ?? false;
   const meta = CATEGORY_META[article.category];
 
@@ -87,7 +84,7 @@ function ArticleDetail({ article, onBack }: { article: Article; onBack: () => vo
           className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
         >
           <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-          Back to library
+          {T.back_to_library}
         </button>
 
         <div className="rounded-3xl border border-white/60 bg-white/80 backdrop-blur-sm p-6 sm:p-8 shadow-xl">
@@ -114,7 +111,7 @@ function ArticleDetail({ article, onBack }: { article: Article; onBack: () => vo
               ) : (
                 <Bookmark className="h-4 w-4" />
               )}
-              <span className="hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
+              <span className="hidden sm:inline">{isBookmarked ? T.saved : T.save}</span>
             </button>
           </div>
 
@@ -127,7 +124,7 @@ function ArticleDetail({ article, onBack }: { article: Article; onBack: () => vo
             <span>&middot;</span>
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              {article.readTime} min read
+              {article.readTime} {T.min_read}
             </span>
           </div>
 
@@ -170,7 +167,18 @@ export function LearnPage() {
     articles,
     currentUser,
     toggleBookmark,
+    language,
   } = useAppStore();
+  const T = translations[language].learn;
+
+  const CATEGORIES: { value: ArticleCategory | 'all'; label: string; Icon: ComponentType<{ className?: string }> }[] = [
+    { value: 'all',          label: T.all,          Icon: LayoutGrid },
+    { value: 'pregnancy',    label: T.pregnancy,    Icon: HeartPulse },
+    { value: 'parenting',    label: T.parenting,    Icon: Baby },
+    { value: 'health',       label: T.health,       Icon: BookOpen },
+    { value: 'nutrition',    label: T.nutrition,    Icon: Salad },
+    { value: 'special_needs', label: T.special_needs, Icon: Heart },
+  ];
 
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);
@@ -215,7 +223,7 @@ export function LearnPage() {
             <div>
               <h1 className="text-xl font-bold text-foreground leading-tight">Learn & Grow</h1>
               <p className="text-xs text-muted-foreground">
-                {articles.length > 0 ? `${articles.length} expert-written articles` : 'Evidence-based articles'}
+                {articles.length > 0 ? `${articles.length} ${T.expert_articles_count}` : T.evidence_based}
               </p>
             </div>
           </div>
@@ -233,7 +241,7 @@ export function LearnPage() {
                 ✦
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C2 }}>Featured</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C2 }}>{T.featured}</p>
                 <p className="text-xs font-medium text-foreground truncate">{featured.title}</p>
               </div>
               <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -246,7 +254,7 @@ export function LearnPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search articles or tags…"
+              placeholder={T.search_placeholder}
               value={articleSearch}
               onChange={(e) => setArticleSearch(e.target.value)}
               className="pl-9 h-10 text-sm bg-white/70 backdrop-blur-sm border-white/60 focus:bg-white"
@@ -278,7 +286,7 @@ export function LearnPage() {
             ) : (
               <Bookmark className="h-4 w-4" />
             )}
-            Saved ({currentUser?.bookmarks.length ?? 0})
+            {T.saved_label} ({currentUser?.bookmarks.length ?? 0})
           </Button>
         </div>
 
@@ -314,9 +322,9 @@ export function LearnPage() {
         ) : displayArticles.length === 0 ? (
           <div className="py-20 text-center rounded-3xl border border-white/50 bg-white/40 backdrop-blur-sm">
             <BookOpen className="mx-auto h-12 w-12 opacity-30" style={{ color: C2 }} />
-            <p className="mt-4 text-sm font-semibold text-foreground">No articles found</p>
+            <p className="mt-4 text-sm font-semibold text-foreground">{T.no_articles}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {showBookmarks ? 'Save articles to find them here.' : 'Try adjusting your search or filter.'}
+              {showBookmarks ? T.saved_articles_hint : T.no_articles_sub}
             </p>
           </div>
         ) : (
@@ -386,7 +394,7 @@ export function LearnPage() {
                     <span className="font-medium text-foreground/70 truncate pr-2">{article.author}</span>
                     <span className="flex items-center gap-1 shrink-0">
                       <Clock className="h-3 w-3" />
-                      {article.readTime} min
+                      {article.readTime} {T.min_read}
                     </span>
                   </div>
                 </article>

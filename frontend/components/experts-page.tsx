@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { translations } from '@/lib/i18n';
 import { useAppStore, type Expert, type ExpertTopic } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -49,32 +50,38 @@ const C3 = '#D4B9B2';
 const CTA = 'linear-gradient(135deg, #c4706a, #a85550)';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-const TOPICS: { value: ExpertTopic | 'all'; label: string; emoji: string }[] = [
-  { value: 'all', label: 'All Topics', emoji: '🌸' },
-  { value: 'medical', label: 'Medical', emoji: '🩺' },
-  { value: 'mental_health', label: 'Mental Health', emoji: '🧠' },
-  { value: 'nutrition', label: 'Nutrition', emoji: '🥗' },
-  { value: 'parenting', label: 'Parenting', emoji: '👶' },
-];
+// TOPICS and TOPIC_LABELS are built inside ExpertsPage to be language-reactive.
+// TOPIC_COLORS is static and kept at module level.
 
 const TOPIC_COLORS: Record<ExpertTopic, string> = {
   medical: 'bg-blue-50 text-blue-700 border-blue-200',
   mental_health: 'bg-purple-50 text-purple-700 border-purple-200',
   nutrition: 'bg-green-50 text-green-700 border-green-200',
   parenting: 'bg-orange-50 text-orange-700 border-orange-200',
+  special_needs: 'bg-pink-50 text-pink-700 border-pink-200',
 };
 
 const TOPIC_LABELS: Record<ExpertTopic, string> = {
   medical: '🩺 Medical',
-  mental_health: '�� Mental Health',
+  mental_health: '🧠 Mental Health',
   nutrition: '🥗 Nutrition',
   parenting: '👶 Parenting',
+  special_needs: '🤝 Special Needs',
 };
 
-// ─── Expert Card ──────────────────────────────────────────────────────────────
+function buildTopicLabels(T: { cat_medical: string; cat_mental: string; cat_nutrition: string; cat_parenting: string; cat_special: string }): Record<ExpertTopic, string> {
+  return {
+    medical: T.cat_medical,
+    mental_health: T.cat_mental,
+    nutrition: T.cat_nutrition,
+    parenting: T.cat_parenting,
+    special_needs: T.cat_special,
+  };
+}
 
 function ExpertCard({ expert }: { expert: Expert }) {
+  const { language } = useAppStore();
+  const T = translations[language].experts;
   const initials = expert.name
     .split(' ')
     .map((n: string) => n[0])
@@ -113,7 +120,7 @@ function ExpertCard({ expert }: { expert: Expert }) {
           <div className="flex items-center gap-1.5 mt-0.5">
             <BriefcaseBusiness className="h-3.5 w-3.5 shrink-0" style={{ color: C1 }} />
             <span className="text-xs text-muted-foreground">
-              {expert.yearsOfExperience} yrs experience
+              {expert.yearsOfExperience} {T.yrs_exp}
             </span>
           </div>
         </div>
@@ -135,7 +142,7 @@ function ExpertCard({ expert }: { expert: Expert }) {
           style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}
         >
           <BadgeCheck className="h-3 w-3" />
-          Verified
+          {T.verified}
         </span>
       </div>
     </div></Link>
@@ -145,7 +152,9 @@ function ExpertCard({ expert }: { expert: Expert }) {
 // ─── Question Detail ──────────────────────────────────────────────────────────
 
 function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: () => void }) {
-  const { questions, answers, selectQuestion, answerQuestion, currentUser } = useAppStore();
+  const { questions, answers, selectQuestion, answerQuestion, currentUser, language } = useAppStore();
+  const T = translations[language].experts;
+  const topicLabels = buildTopicLabels(T);
   const question = questions.find((q) => q.id === questionId);
   const questionAnswers = answers[questionId] ?? [];
   const [answerText, setAnswerText] = useState('');
@@ -176,15 +185,13 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
 
   return (
     <div className="flex flex-col gap-6">
-      <button
+        <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
       >
         <ChevronLeft className="h-4 w-4" />
-        Back to questions
-      </button>
-
-      {/* Question card */}
+        {T.back_to_questions}
+      </button>      {/* Question card */}
       <div className="rounded-2xl border border-white/60 bg-white/80 backdrop-blur-sm p-6 shadow-sm" style={{ borderColor: `${C3}80` }}>
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -211,13 +218,13 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
             </div>
           </div>
           <Badge variant="outline" className={`shrink-0 text-xs ${TOPIC_COLORS[question.topic]}`}>
-            {TOPIC_LABELS[question.topic]}
+            {topicLabels[question.topic]}
           </Badge>
         </div>
         <p className="text-base leading-relaxed text-foreground">{question.question}</p>
         <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground border-t border-border pt-4">
           <MessageSquare className="h-3.5 w-3.5" />
-          {questionAnswers.length} expert {questionAnswers.length === 1 ? 'answer' : 'answers'}
+          {questionAnswers.length} {T.expert_answers.toLowerCase()} ({questionAnswers.length === 1 ? T.answer : T.answers})
         </div>
       </div>
 
@@ -229,10 +236,10 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
         >
           <p className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: C2 }}>
             <BadgeCheck className="h-4 w-4" />
-            Submit Your Expert Answer
+            {T.submit_answer_title}
           </p>
           <Textarea
-            placeholder="Share your professional knowledge and advice..."
+            placeholder={T.answer_placeholder}
             value={answerText}
             onChange={(e) => setAnswerText(e.target.value)}
             className="min-h-30 resize-none text-sm mb-3"
@@ -249,7 +256,7 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
                 style={{ background: CTA }}
               >
                 <Send className="h-3.5 w-3.5" />
-                {submitting ? 'Submitting…' : 'Post Answer'}
+                {submitting ? T.submitting : T.post_answer}
               </Button>
             </div>
           </div>
@@ -259,14 +266,14 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
       {/* Answers list */}
       <div>
         <h3 className="mb-4 text-sm font-semibold text-foreground">
-          Expert Answers ({questionAnswers.length})
+          {T.expert_answers} ({questionAnswers.length})
         </h3>
         {questionAnswers.length === 0 ? (
           <div className="py-12 text-center rounded-2xl border border-dashed border-border bg-muted/20">
             <MessageSquare className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No expert answers yet.</p>
+            <p className="text-sm text-muted-foreground">{T.no_answers}</p>
             {currentUser?.isExpert && (
-              <p className="text-xs text-muted-foreground mt-1">Be the first to answer above!</p>
+              <p className="text-xs text-muted-foreground mt-1">{T.be_first_answer}</p>
             )}
           </div>
         ) : (
@@ -302,7 +309,7 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
                         style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}
                       >
                         <BadgeCheck className="h-2.5 w-2.5" />
-                        Verified Expert
+                        {T.verified_expert}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
@@ -324,7 +331,16 @@ function QuestionDetail({ questionId, onBack }: { questionId: string; onBack: ()
 // ─── Ask Question Dialog ──────────────────────────────────────────────────────
 
 function AskQuestionDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  const { addQuestion, isAuthenticated } = useAppStore();
+  const { addQuestion, isAuthenticated, language } = useAppStore();
+  const T = translations[language].experts;
+  const TOPICS: { value: ExpertTopic | 'all'; label: string; emoji: string }[] = [
+    { value: 'all', label: T.cat_all, emoji: '🌸' },
+    { value: 'medical', label: T.cat_medical, emoji: '🩺' },
+    { value: 'mental_health', label: T.cat_mental, emoji: '🧠' },
+    { value: 'nutrition', label: T.cat_nutrition, emoji: '🥗' },
+    { value: 'parenting', label: T.cat_parenting, emoji: '👶' },
+    { value: 'special_needs', label: T.cat_special, emoji: '🤝' },
+  ];
   const [questionText, setQuestionText] = useState('');
   const [topic, setTopic] = useState<ExpertTopic>('medical');
   const [submitting, setSubmitting] = useState(false);
@@ -357,7 +373,7 @@ function AskQuestionDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             >
               <MessageSquare className="h-4 w-4" />
             </span>
-            Ask an Expert
+            {T.ask_dialog_title}
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 pt-2">
@@ -365,13 +381,13 @@ function AskQuestionDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             className="rounded-xl p-3 text-xs text-muted-foreground leading-relaxed border"
             style={{ borderColor: `${C3}80`, background: `${C3}15` }}
           >
-            💡 Questions are answered by verified healthcare professionals within 48 hours. All answers are public.
+            💡 {T.ask_hint}
           </div>
 
           <div>
-            <Label className="text-sm font-medium mb-1.5 block">Your question</Label>
+            <Label className="text-sm font-medium mb-1.5 block">{T.ask_question_label}</Label>
             <Textarea
-              placeholder="Describe your question in detail — the more context, the better the answer..."
+              placeholder={T.ask_question_placeholder}
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               className="min-h-30 resize-none text-sm"
@@ -381,7 +397,7 @@ function AskQuestionDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           </div>
 
           <div>
-            <Label htmlFor="topic-select" className="text-sm font-medium mb-1.5 block">Topic</Label>
+            <Label htmlFor="topic-select" className="text-sm font-medium mb-1.5 block">{T.topic_label}</Label>
             <Select value={topic} onValueChange={(v) => setTopic(v as ExpertTopic)}>
               <SelectTrigger id="topic-select" className="h-9 text-sm">
                 <SelectValue />
@@ -399,7 +415,7 @@ function AskQuestionDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           {error && <p className="text-xs text-destructive">{error}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{T.cancel}</Button>
             <Button
               onClick={handleSubmit}
               disabled={!questionText.trim() || submitting || !isAuthenticated}
@@ -407,12 +423,12 @@ function AskQuestionDialog({ open, onOpenChange }: { open: boolean; onOpenChange
               style={{ background: CTA }}
             >
               <Send className="h-3.5 w-3.5" />
-              {submitting ? 'Submitting…' : 'Submit Question'}
+              {submitting ? T.submitting : T.submit_question}
             </Button>
           </div>
           {!isAuthenticated && (
             <p className="text-xs text-center text-muted-foreground -mt-2">
-              You need to be signed in to ask a question.
+              {T.need_sign_in}
             </p>
           )}
         </div>
@@ -428,7 +444,19 @@ export function ExpertsPage() {
     expertFilter, expertSearch, setExpertFilter, setExpertSearch,
     getFilteredQuestions, experts, expertsLoading, fetchExperts,
     questionsLoading, fetchQuestions, questions, currentUser, isAuthenticated,
+    language,
   } = useAppStore();
+  const T = translations[language].experts;
+
+  const TOPICS: { value: ExpertTopic | 'all'; label: string; emoji: string }[] = [
+    { value: 'all', label: T.cat_all, emoji: '🌸' },
+    { value: 'medical', label: T.cat_medical, emoji: '🩺' },
+    { value: 'mental_health', label: T.cat_mental, emoji: '🧠' },
+    { value: 'nutrition', label: T.cat_nutrition, emoji: '🥗' },
+    { value: 'parenting', label: T.cat_parenting, emoji: '👶' },
+    { value: 'special_needs', label: T.cat_special, emoji: '🤝' },
+  ];
+  const topicLabels = buildTopicLabels(T);
 
   const [askOpen, setAskOpen] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
@@ -477,9 +505,9 @@ export function ExpertsPage() {
               <MessageSquare className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground leading-tight">Ask Our Experts</h1>
+              <h1 className="text-xl font-bold text-foreground leading-tight">{T.title}</h1>
               <p className="text-xs text-muted-foreground">
-                {isPremium && questions.length > 0 ? `${questions.length} questions · ${experts.length} verified experts` : 'Get answers from verified healthcare professionals'}
+                {isPremium && questions.length > 0 ? `${questions.length} ${T.questions_title} · ${experts.length} ${T.verified.toLowerCase()} ${T.our_experts.toLowerCase()}` : T.subtitle}
               </p>
             </div>
           </div>
@@ -490,7 +518,7 @@ export function ExpertsPage() {
               style={{ background: CTA }}
             >
               <Plus className="h-4 w-4" />
-              Ask a Question
+              {T.ask_btn}
             </Button>
           )}
         </div>
@@ -509,31 +537,31 @@ export function ExpertsPage() {
                 </div>
                 
                 <h2 className="text-3xl font-extrabold mb-4 text-gray-800">
-                  Premium Feature
+                  {T.premium_gate_title}
                 </h2>
                 
                 <p className="text-lg text-gray-600 mb-6 max-w-xl mx-auto">
-                  Access to <span className="font-bold" style={{ color: C2 }}>Ask an Expert</span> is available exclusively for Premium members. Get personalized answers from verified healthcare professionals.
+                  {T.premium_gate_desc}
                 </p>
 
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-6 max-w-lg mx-auto">
-                  <p className="text-sm font-semibold mb-3" style={{ color: C2 }}>Premium Benefits:</p>
+                  <p className="text-sm font-semibold mb-3" style={{ color: C2 }}>{T.premium_benefits}</p>
                   <ul className="space-y-2 text-sm text-gray-700">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
-                      Ask unlimited questions to verified experts
+                      {T.benefit_unlimited}
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
-                      Unlimited AI chatbot conversations
+                      {T.benefit_ai}
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
-                      Priority support and expert replies
+                      {T.benefit_priority}
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
-                      Ad-free experience
+                      {T.benefit_adfree}
                     </li>
                   </ul>
                 </div>
@@ -545,16 +573,16 @@ export function ExpertsPage() {
                     style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
                   >
                     <Crown className="h-5 w-5" />
-                    Upgrade to Premium
+                    {T.upgrade_cta}
                   </a>
                   <p className="text-sm text-gray-500">
-                    Only <span className="font-bold" style={{ color: C2 }}>499 ETB/month</span>
+                    {T.only_499} <span className="font-bold" style={{ color: C2 }}>{T.upgrade_price}</span>
                   </p>
                 </div>
 
                 {!isAuthenticated && (
                   <p className="mt-6 text-xs text-gray-400">
-                    Don't have an account? <a href="/auth" className="font-semibold underline" style={{ color: C2 }}>Sign up free</a> to explore other features
+                    {T.no_account_prompt} <a href="/auth" className="font-semibold underline" style={{ color: C2 }}>{T.sign_up_free}</a>
                   </p>
                 )}
               </div>
@@ -567,8 +595,8 @@ export function ExpertsPage() {
           <section className="mb-10">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Our Verified Experts</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Scroll to browse specialists →</p>
+                <h2 className="text-lg font-semibold text-foreground">{T.our_experts}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">{T.scroll_hint}</p>
               </div>
               <Link
                 href="/join-as-expert"
@@ -576,7 +604,7 @@ export function ExpertsPage() {
                 style={{ background: CTA }}
               >
                 <Stethoscope className="h-3.5 w-3.5" />
-                Join as Expert
+                {T.join_as_expert}
               </Link>
             </div>
 
@@ -634,10 +662,10 @@ export function ExpertsPage() {
         <section>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Community Questions</h2>
+              <h2 className="text-lg font-semibold text-foreground">{T.questions}</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
-                {expertFilter !== 'all' ? ` in ${TOPIC_LABELS[expertFilter as ExpertTopic]}` : ''}
+                {filteredQuestions.length} {T.questions_title}
+                {expertFilter !== 'all' ? ` in ${topicLabels[expertFilter as ExpertTopic]}` : ''}
               </p>
             </div>
             {currentUser?.isExpert && (
@@ -646,7 +674,7 @@ export function ExpertsPage() {
                 style={{ background: CTA }}
               >
                 <BadgeCheck className="h-3.5 w-3.5" />
-                You can answer
+                {T.you_can_answer}
               </span>
             )}
           </div>
@@ -655,7 +683,7 @@ export function ExpertsPage() {
           <div className="mb-4 relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search questions..."
+              placeholder={T.search_placeholder}
               value={expertSearch}
               onChange={(e) => setExpertSearch(e.target.value)}
               className="pl-9 h-10 text-sm bg-white/70 backdrop-blur-sm border-white/60 focus:bg-white"
@@ -711,9 +739,9 @@ export function ExpertsPage() {
           ) : filteredQuestions.length === 0 ? (
             <div className="py-16 text-center rounded-2xl border border-dashed border-border bg-white/40 backdrop-blur-sm">
               <MessageSquare className="h-10 w-10 mx-auto mb-3" style={{ color: C2 }} />
-              <p className="text-sm font-semibold text-foreground">No questions found</p>
+              <p className="text-sm font-semibold text-foreground">{T.no_questions}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {expertSearch ? 'Try a different search term.' : 'Be the first to ask our experts!'}
+                {expertSearch ? T.no_questions_search : T.no_questions_empty}
               </p>
               {isAuthenticated && (
                 <Button
@@ -722,7 +750,7 @@ export function ExpertsPage() {
                   style={{ background: CTA }}
                 >
                   <Plus className="h-4 w-4" />
-                  Ask a Question
+                  {T.ask_btn}
                 </Button>
               )}
             </div>
@@ -756,7 +784,7 @@ export function ExpertsPage() {
                       </div>
                     </div>
                     <Badge variant="outline" className={`shrink-0 text-xs ${TOPIC_COLORS[q.topic]}`}>
-                      {TOPIC_LABELS[q.topic]}
+                      {topicLabels[q.topic]}
                     </Badge>
                   </div>
 
@@ -766,17 +794,17 @@ export function ExpertsPage() {
                     {q.answerCount > 0 ? (
                       <span className="flex items-center gap-1.5 text-xs font-medium" style={{ color: C2 }}>
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        {q.answerCount} expert {q.answerCount === 1 ? 'answer' : 'answers'}
+                        {q.answerCount} {q.answerCount === 1 ? T.answer : T.answers}
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
-                        Awaiting expert response
+                        {T.awaiting_response}
                       </span>
                     )}
                     {currentUser?.isExpert && q.answerCount === 0 && (
                       <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: C2 }}>
-                        Answer this →
+                        {T.answer_this}
                       </span>
                     )}
                   </div>

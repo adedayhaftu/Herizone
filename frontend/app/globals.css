@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Amharic (Ethiopic) script font — used when language = 'am' */
+:lang(am),
+[lang="am"],
+.font-ethiopic {
+  font-family: var(--font-ethiopic), sans-serif;
+}
+
 :root {
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.16 0 0);

@@ -9,25 +9,28 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { translations } from '@/lib/i18n';
 import { useAppStore, type View } from '@/lib/store';
 import { BookOpen, Crown, Heart, Home, LogOut, Menu, MessageSquare, PenLine, Settings, Stethoscope, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
-// ── Brand palette (matches home-page.tsx) ────────────────────────────────────
+// ── Brand palette ─────────────────────────────────────────────────────────────
 const C1 = '#CAA69B';
 const C2 = '#CB978E';
 const C3 = '#D4B9B2';
 
-const navItems: { label: string; view: View; icon: React.ReactNode }[] = [
-  { label: 'Home',        view: 'home',    icon: <Home        className="h-4 w-4" /> },
-  { label: 'Community',   view: 'feed',    icon: <Users       className="h-4 w-4" /> },
-  { label: 'Learn',       view: 'learn',   icon: <BookOpen    className="h-4 w-4" /> },
-  { label: 'Ask Experts', view: 'experts', icon: <MessageSquare className="h-4 w-4" /> },
-];
-
 export function Navbar() {
-  const { currentView, setView, currentUser, isAuthenticated, logout } = useAppStore();
+  const { currentView, setView, currentUser, isAuthenticated, logout, language, setLanguage } = useAppStore();
+
+  const T = translations[language].nav;
+
+  const navItems: { label: string; view: View; icon: React.ReactNode }[] = [
+    { label: T.home,       view: 'home',    icon: <Home          className="h-4 w-4" /> },
+    { label: T.community,  view: 'feed',    icon: <Users         className="h-4 w-4" /> },
+    { label: T.learn,      view: 'learn',   icon: <BookOpen      className="h-4 w-4" /> },
+    { label: T.askExperts, view: 'experts', icon: <MessageSquare className="h-4 w-4" /> },
+  ];
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const initials = currentUser?.name
@@ -91,7 +94,18 @@ export function Navbar() {
         </nav>
 
         {/* ── Right side ───────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+
+          {/* Language Toggle */}
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
+            className="hidden sm:inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold transition-all hover:bg-white border"
+            style={{ borderColor: '#ecddd9', color: '#7a6360', background: 'transparent' }}
+            title={language === 'en' ? 'Switch to Amharic' : 'Switch to English'}
+          >
+            {language === 'en' ? <>🇪🇹 <span>አማርኛ</span></> : <>🇬🇧 <span>EN</span></>}
+          </button>
+
           {/* Premium Badge for non-premium users */}
           {isAuthenticated && currentUser && !currentUser.isPremium && (
             <Link
@@ -100,10 +114,10 @@ export function Navbar() {
               style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
             >
               <Crown className="h-3.5 w-3.5" />
-              Go Premium
+              {T.goPremium}
             </Link>
           )}
-          {/* Join as Expert button — visible for guests and logged-in non-expert users */}
+          {/* Join as Expert button */}
           {(!isAuthenticated || (currentUser && !currentUser.isExpert && !currentUser.isAdmin)) && (
             <Link
               href="/join-as-expert"
@@ -111,7 +125,7 @@ export function Navbar() {
               style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}
             >
               <Stethoscope className="h-3.5 w-3.5" />
-              Join as Expert
+              {T.joinAsExpert}
             </Link>
           )}
           {isAuthenticated && currentUser ? (
@@ -148,20 +162,19 @@ export function Navbar() {
                   style={{ color: '#3d2b27' }}
                 >
                   <User className="h-4 w-4" style={{ color: C1 }} />
-                  My Profile
+                  {T.myProfile}
                 </DropdownMenuItem>
                 {currentUser?.isExpert && !currentUser?.isAdmin && (
                   <>
                     <DropdownMenuSeparator style={{ background: '#ecddd9' }} />
                     <DropdownMenuItem
-                      onClick={() => {}}
                       className="gap-2 cursor-pointer rounded-lg text-sm"
                       style={{ color: '#3d2b27' }}
                       asChild
                     >
                       <a href="/expert-articles">
                         <PenLine className="h-4 w-4" style={{ color: C1 }} />
-                        My Articles
+                        {T.myArticles}
                       </a>
                     </DropdownMenuItem>
                   </>
@@ -170,25 +183,23 @@ export function Navbar() {
                   <>
                     <DropdownMenuSeparator style={{ background: '#ecddd9' }} />
                     <DropdownMenuItem
-                      onClick={() => {}}
                       className="gap-2 cursor-pointer rounded-lg text-sm"
                       style={{ color: '#3d2b27' }}
                       asChild
                     >
                       <a href="/expert-articles">
                         <PenLine className="h-4 w-4" style={{ color: C1 }} />
-                        My Articles
+                        {T.myArticles}
                       </a>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => {}}
                       className="gap-2 cursor-pointer rounded-lg text-sm"
                       style={{ color: '#3d2b27' }}
                       asChild
                     >
                       <a href="/admin-articles">
                         <Settings className="h-4 w-4" style={{ color: C1 }} />
-                        Review &amp; Manage
+                        {T.reviewManage}
                       </a>
                     </DropdownMenuItem>
                   </>
@@ -197,14 +208,13 @@ export function Navbar() {
                   <>
                     <DropdownMenuSeparator style={{ background: '#ecddd9' }} />
                     <DropdownMenuItem
-                      onClick={() => {}}
                       className="gap-2 cursor-pointer rounded-lg text-sm"
                       style={{ color: '#3d2b27' }}
                       asChild
                     >
                       <a href="/join-as-expert">
                         <Stethoscope className="h-4 w-4" style={{ color: C1 }} />
-                        Join as Expert
+                        {T.joinAsExpert}
                       </a>
                     </DropdownMenuItem>
                   </>
@@ -215,7 +225,7 @@ export function Navbar() {
                   className="gap-2 cursor-pointer rounded-lg text-sm text-red-500"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {T.signOut}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -227,14 +237,14 @@ export function Navbar() {
                 className="hidden sm:inline-flex items-center rounded-full px-4 py-2 text-sm font-medium transition-colors hover:bg-white"
                 style={{ color: C2, border: `1px solid ${C3}` }}
               >
-                Sign in
+                {T.signIn}
               </Link>
               <Link
                 href="/auth"
                 className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-105"
                 style={{ background: C2 }}
               >
-                Join free
+                {T.joinFree}
               </Link>
             </div>
           )}
@@ -274,10 +284,7 @@ export function Navbar() {
                   return (
                     <button
                       key={item.view}
-                      onClick={() => {
-                        setView(item.view);
-                        setMobileOpen(false);
-                      }}
+                      onClick={() => { setView(item.view); setMobileOpen(false); }}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors text-left"
                       style={{
                         background: isActive ? `${C3}50` : 'transparent',
@@ -291,8 +298,19 @@ export function Navbar() {
                 })}
               </div>
 
+              {/* Mobile language toggle */}
+              <div className="mt-4 px-1">
+                <button
+                  onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white"
+                  style={{ borderColor: C3, color: '#7a6360' }}
+                >
+                  {language === 'en' ? '🇪🇹 አማርኛ' : '🇬🇧 English'}
+                </button>
+              </div>
+
               {(!isAuthenticated || (currentUser && !currentUser.isExpert && !currentUser.isAdmin)) && (
-                <div className="mt-6 px-1">
+                <div className="mt-3 px-1">
                   <Link
                     href="/join-as-expert"
                     onClick={() => setMobileOpen(false)}
@@ -300,19 +318,19 @@ export function Navbar() {
                     style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}
                   >
                     <Stethoscope className="h-4 w-4" />
-                    Join as Expert
+                    {T.joinAsExpert}
                   </Link>
                 </div>
               )}
               {!isAuthenticated && (
-                <div className="mt-6 flex flex-col gap-2 px-1">
+                <div className="mt-3 flex flex-col gap-2 px-1">
                   <Link
                     href="/auth"
                     onClick={() => setMobileOpen(false)}
                     className="flex items-center justify-center rounded-full border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white"
                     style={{ borderColor: C3, color: C2 }}
                   >
-                    Sign in
+                    {T.signIn}
                   </Link>
                   <Link
                     href="/auth"
@@ -320,7 +338,7 @@ export function Navbar() {
                     className="flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-sm"
                     style={{ background: C2 }}
                   >
-                    Join free
+                    {T.joinFree}
                   </Link>
                 </div>
               )}

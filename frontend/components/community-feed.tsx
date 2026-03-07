@@ -10,13 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { translations } from '@/lib/i18n';
 import { useAppStore, type PostCategory } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
 import {
+  AlertTriangle,
   ArrowUpDown,
   Baby,
+  BadgeCheck,
+  BotMessageSquare,
   ChevronLeft,
   Heart,
+  HelpCircle,
   Leaf,
   Lock,
   MessageCircle,
@@ -29,6 +34,7 @@ import {
   User,
   Users,
   X,
+  XCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -40,6 +46,7 @@ const CATEGORIES: { value: PostCategory | 'all'; label: string }[] = [
   { value: 'parenting', label: 'Parenting' },
   { value: 'health', label: 'Health' },
   { value: 'general', label: 'General' },
+  { value: 'special_needs', label: 'Special Needs' },
 ];
 
 const CATEGORY_COLORS: Record<PostCategory, string> = {
@@ -47,7 +54,100 @@ const CATEGORY_COLORS: Record<PostCategory, string> = {
   parenting: 'bg-purple-100 text-purple-700 border-purple-200',
   health: 'bg-teal-100 text-teal-700 border-teal-200',
   general: 'bg-orange-100 text-orange-700 border-orange-200',
+  special_needs: 'bg-rose-100 text-rose-700 border-rose-200',
 };
+
+// ─── AI Moderation ────────────────────────────────────────────────────────────
+
+type AiTag = 'verified' | 'medical-advice' | 'misleading' | 'unverified' | 'supportive' | 'needs-expert';
+
+interface AiVerdict {
+  tag: AiTag;
+  label: string;
+  detail: string;
+  icon: typeof BadgeCheck;
+  className: string;
+  iconColor: string;
+}
+
+const AI_TAG_CONFIG: Record<AiTag, Omit<AiVerdict, 'tag'>> = {
+  verified: {
+    label: 'Medically Verified',
+    detail: 'Content aligns with established medical guidelines.',
+    icon: BadgeCheck,
+    className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    iconColor: 'text-emerald-600',
+  },
+  'medical-advice': {
+    label: 'Contains Medical Advice',
+    detail: 'Includes specific medical guidance — always consult your doctor.',
+    icon: Stethoscope,
+    className: 'bg-blue-50 border-blue-200 text-blue-800',
+    iconColor: 'text-blue-500',
+  },
+  misleading: {
+    label: 'Potentially Misleading',
+    detail: 'This claim may conflict with current medical evidence.',
+    icon: AlertTriangle,
+    className: 'bg-red-50 border-red-200 text-red-800',
+    iconColor: 'text-red-500',
+  },
+  unverified: {
+    label: 'Unverified Claim',
+    detail: 'No supporting evidence found — treat with caution.',
+    icon: XCircle,
+    className: 'bg-orange-50 border-orange-200 text-orange-800',
+    iconColor: 'text-orange-500',
+  },
+  supportive: {
+    label: 'Peer Support',
+    detail: 'Emotional or personal experience — not medical advice.',
+    icon: Heart,
+    className: 'bg-pink-50 border-pink-200 text-pink-800',
+    iconColor: 'text-pink-500',
+  },
+  'needs-expert': {
+    label: 'Expert Review Needed',
+    detail: 'Topic is complex. Verified expert input is recommended.',
+    icon: HelpCircle,
+    className: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    iconColor: 'text-yellow-600',
+  },
+};
+
+/** Deterministic mock — assigns a tag based on content keywords for demo purposes */
+function getAiTag(text: string): AiTag {
+  const t = text.toLowerCase();
+  if (/vaccine|vaccin|autis|mmr|cause|link|proven|cure|miracle|turmeric|essential oil|coconut oil|detox/.test(t))
+    return 'misleading';
+  if (/down syndrome|cerebral palsy|seizure|autism|adhd|asd|therapy|iep|special need|disability|disorder/.test(t))
+    return 'needs-expert';
+  if (/doctor said|my ob|pediatrician|prescription|dosage|diagnosis|mg |medication|prescribed/.test(t))
+    return 'medical-advice';
+  if (/i think|maybe|not sure|heard that|someone told|i read online|apparently|supposedly/.test(t))
+    return 'unverified';
+  if (/feel|feeling|hug|sending love|you are not alone|same|went through|my experience|i had/.test(t))
+    return 'supportive';
+  return 'verified';
+}
+
+function AiModerationBadge({ text, compact = false }: { text: string; compact?: boolean }) {
+  const tag = getAiTag(text);
+  const cfg = AI_TAG_CONFIG[tag];
+  const Icon = cfg.icon;
+  return (
+    <div className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-xs ${cfg.className}`}>
+      <BotMessageSquare className={`h-3.5 w-3.5 shrink-0 mt-0.5 ${cfg.iconColor}`} />
+      <div className="flex flex-col gap-0.5">
+        <span className="flex items-center gap-1 font-semibold">
+          <Icon className={`h-3 w-3 ${cfg.iconColor}`} />
+          AI: {cfg.label}
+        </span>
+        {!compact && <span className="opacity-80">{cfg.detail}</span>}
+      </div>
+    </div>
+  );
+}
 
 // ─── Login Prompt Dialog ──────────────────────────────────────────────────────
 
@@ -60,6 +160,8 @@ function LoginPromptDialog({
   onOpenChange: (v: boolean) => void;
   onGoToAuth: () => void;
 }) {
+  const { language } = useAppStore();
+  const T = translations[language].feed;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm text-center">
@@ -68,17 +170,17 @@ function LoginPromptDialog({
             <Lock className="h-6 w-6 text-primary" />
           </div>
           <DialogHeader>
-            <DialogTitle className="text-center text-lg">Join to participate</DialogTitle>
+            <DialogTitle className="text-center text-lg">{T.join_prompt_title}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Create a free account to like posts, leave comments, and share your own story with the community.
+            {T.join_prompt_desc}
           </p>
           <div className="flex w-full flex-col gap-2">
             <Button className="w-full" onClick={onGoToAuth}>
-              Sign up — it&apos;s free
+              {T.join_cta}
             </Button>
             <Button variant="outline" className="w-full" onClick={onGoToAuth}>
-              Already have an account? Sign in
+              {T.already_member}
             </Button>
           </div>
         </div>
@@ -143,7 +245,12 @@ function PostCard({
         {post.content}
       </p>
 
-      <div className="mt-4 flex items-center gap-4">
+      {/* AI moderation tag on feed card */}
+      <div className="mt-2">
+        <AiModerationBadge text={post.content} compact />
+      </div>
+
+      <div className="mt-3 flex items-center gap-4">
         <button
           onClick={handleLike}
           className={`flex items-center gap-1.5 text-sm transition-colors ${
@@ -176,7 +283,8 @@ function PostDetail({
   isAuthenticated: boolean;
   onAuthRequired: () => void;
 }) {
-  const { posts, postComments, addComment, toggleLike, selectPost, currentUser } = useAppStore();
+  const { posts, postComments, addComment, toggleLike, selectPost, currentUser, language } = useAppStore();
+  const T = translations[language].feed;
   const post = posts.find((p) => p.id === postId);
   const comments = postComments[postId] || [];
   const [commentText, setCommentText] = useState('');
@@ -217,7 +325,7 @@ function PostDetail({
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
       >
         <ChevronLeft className="h-4 w-4" />
-        Back to feed
+        {T.back_to_feed}
       </button>
 
       {/* Post */}
@@ -244,6 +352,12 @@ function PostDetail({
           </Badge>
         </div>
         <p className="mt-4 text-sm leading-relaxed text-foreground">{post.content}</p>
+
+        {/* AI Moderation verdict on the post */}
+        <div className="mt-4">
+          <AiModerationBadge text={post.content} />
+        </div>
+
         <div className="mt-5 flex items-center gap-4 border-t border-border pt-4">
           <button
             onClick={handleLike}
@@ -252,11 +366,11 @@ function PostDetail({
             }`}
           >
             <Heart className="h-4 w-4" fill={post.isLiked ? 'currentColor' : 'none'} />
-            <span>{post.likes} likes</span>
+            <span>{post.likes} {T.likes}</span>
           </button>
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MessageCircle className="h-4 w-4" />
-            <span>{comments.length} comments</span>
+            <span>{comments.length} {T.comments}</span>
           </div>
         </div>
       </div>
@@ -264,12 +378,12 @@ function PostDetail({
       {/* Comments */}
       <div>
         <h3 className="mb-4 text-sm font-medium text-foreground">
-          Comments ({comments.length})
+          {T.comments} ({comments.length})
         </h3>
         <div className="flex flex-col gap-3">
           {comments.length === 0 && (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No comments yet. Be the first to respond.
+              {T.no_comments}
             </p>
           )}
           {comments.map((comment) => (
@@ -288,6 +402,10 @@ function PostDetail({
                   </span>
                 </div>
                 <p className="mt-1 text-sm leading-relaxed text-foreground/90">{comment.content}</p>
+                {/* AI moderation tag on each comment */}
+                <div className="mt-2">
+                  <AiModerationBadge text={comment.content} compact />
+                </div>
               </div>
             </div>
           ))}
@@ -304,7 +422,7 @@ function PostDetail({
             </Avatar>
             <div className="flex flex-1 flex-col gap-2">
               <Textarea
-                placeholder="Add a supportive comment..."
+                placeholder={T.add_comment_placeholder}
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 className="min-h-[72px] resize-none text-sm"
@@ -320,7 +438,7 @@ function PostDetail({
                   className="gap-1.5"
                 >
                   <Send className="h-3.5 w-3.5" />
-                  {submitting ? 'Posting...' : 'Post'}
+                  {submitting ? T.posting : T.post_comment}
                 </Button>
               </div>
             </div>
@@ -331,7 +449,7 @@ function PostDetail({
             className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/40 py-4 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
           >
             <Lock className="h-4 w-4" />
-            Sign in to leave a comment
+            {T.sign_in_comment}
           </button>
         )}
       </div>
@@ -342,7 +460,16 @@ function PostDetail({
 // ─── New Post Dialog ──────────────────────────────────────────────────────────
 
 function NewPostDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  const { addPost, currentUser } = useAppStore();
+  const { addPost, currentUser, language } = useAppStore();
+  const T = translations[language].feed;
+  const CATEGORIES_I18N: { value: PostCategory | 'all'; label: string }[] = [
+    { value: 'all', label: T.cat_all },
+    { value: 'pregnancy', label: T.cat_pregnancy },
+    { value: 'parenting', label: T.cat_parenting },
+    { value: 'health', label: T.cat_health },
+    { value: 'general', label: T.cat_general },
+    { value: 'special_needs', label: T.cat_special_needs },
+  ];
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<PostCategory>('general');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -372,11 +499,11 @@ function NewPostDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create a Post</DialogTitle>
+          <DialogTitle>{T.create_post_title}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 pt-2">
           <Textarea
-            placeholder="Share what's on your mind, ask for advice, or offer support..."
+            placeholder={T.post_placeholder}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="min-h-[120px] resize-none text-sm"
@@ -387,14 +514,14 @@ function NewPostDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v
           <div className="flex flex-col gap-3 rounded-lg bg-muted/40 p-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="category-select" className="text-sm font-medium">
-                Category
+                {T.category_label}
               </Label>
               <Select value={category} onValueChange={(v) => setCategory(v as PostCategory)}>
                 <SelectTrigger id="category-select" className="w-36 h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.filter((c) => c.value !== 'all').map((c) => (
+                  {CATEGORIES_I18N.filter((c) => c.value !== 'all').map((c) => (
                     <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
                   ))}
                 </SelectContent>
@@ -403,16 +530,16 @@ function NewPostDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v
             <Separator />
             <div className="flex items-center justify-between">
               <Label htmlFor="anon-switch" className="text-sm font-medium">
-                Post anonymously
+                {T.anonymous_label}
               </Label>
               <Switch id="anon-switch" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
             </div>
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{T.cancel}</Button>
             <Button onClick={handleSubmit} disabled={!content.trim() || submitting}>
-              {submitting ? 'Publishing...' : 'Publish'}
+              {submitting ? T.publishing : T.publish}
             </Button>
           </div>
         </div>
@@ -428,8 +555,18 @@ export function CommunityFeed() {
     postFilter, postSort, postSearch,
     setPostFilter, setPostSort, setPostSearch,
     getFilteredPosts, fetchPosts, postsLoading,
-    isAuthenticated, setView,
+    isAuthenticated, setView, language,
   } = useAppStore();
+  const T = translations[language].feed;
+
+  const CATEGORIES_I18N: { value: PostCategory | 'all'; label: string }[] = [
+    { value: 'all', label: T.cat_all },
+    { value: 'pregnancy', label: T.cat_pregnancy },
+    { value: 'parenting', label: T.cat_parenting },
+    { value: 'health', label: T.cat_health },
+    { value: 'general', label: T.cat_general },
+    { value: 'special_needs', label: T.cat_special_needs },
+  ];
   const [newPostOpen, setNewPostOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [loginPromptOpen, setLoginPromptOpen] = useState(false);
@@ -485,8 +622,8 @@ export function CommunityFeed() {
           {/* Header */}
           <div className="mb-7 flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold tracking-tight text-[#3d2b27]">Community</h1>
-              <p className="mt-1 text-base text-[#7a6360]">A safe space to share, ask, and support.</p>
+              <h1 className="text-2xl font-extrabold tracking-tight text-[#3d2b27]">{T.title}</h1>
+              <p className="mt-1 text-base text-[#7a6360]">{T.subtitle}</p>
             </div>
             <Button
               onClick={() => {
@@ -496,7 +633,7 @@ export function CommunityFeed() {
               className="hidden rounded-full bg-gradient-to-tr from-[#CAA69B] to-[#CB978E] px-6 py-2.5 text-white shadow-lg transition-all hover:brightness-105 lg:flex"
               style={{ fontWeight: 700 }}
             >
-              <Plus className="h-4 w-4" /> New Post
+              <Plus className="h-4 w-4" /> {T.new_post}
             </Button>
           </div>
 
@@ -505,7 +642,7 @@ export function CommunityFeed() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search posts..."
+                placeholder={T.search_placeholder}
                 value={postSearch}
                 onChange={(e) => setPostSearch(e.target.value)}
                 className="pl-9 text-sm h-10 rounded-full bg-white/80 shadow-sm border border-[#ecddd9]"
@@ -526,15 +663,15 @@ export function CommunityFeed() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="popular">Most Liked</SelectItem>
+                <SelectItem value="newest">{T.sort_newest}</SelectItem>
+                <SelectItem value="popular">{T.sort_popular}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Category pills */}
           <div className="mb-7 flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
+            {CATEGORIES_I18N.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => setPostFilter(cat.value)}
@@ -553,11 +690,11 @@ export function CommunityFeed() {
           {!isAuthenticated && (
             <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">You&apos;re browsing as a guest.</span>{' '}
-                Sign in to like, comment, and post.
+                <span className="font-medium text-foreground">{T.guest_banner}</span>{' '}
+                {T.guest_banner_sub}
               </p>
               <Button size="sm" variant="outline" onClick={handleAuthRequired} className="shrink-0">
-                Sign in
+                {T.sign_in}
               </Button>
             </div>
           )}

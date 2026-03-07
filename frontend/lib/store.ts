@@ -1,27 +1,28 @@
 import { create } from 'zustand';
 import {
-    articlesApi,
-    chatApi,
-    expertApplicationsApi,
-    postsApi,
-    questionsApi,
-    type ApiAnswer,
-    type ApiArticle,
-    type ApiChatMessage,
-    type ApiComment,
-    type ApiExpert,
-    type ApiExpertApplication,
-    type ApiPost,
-    type ApiQuestion,
-    type AuthUser,
+  articlesApi,
+  chatApi,
+  expertApplicationsApi,
+  postsApi,
+  questionsApi,
+  type ApiAnswer,
+  type ApiArticle,
+  type ApiChatMessage,
+  type ApiComment,
+  type ApiExpert,
+  type ApiExpertApplication,
+  type ApiPost,
+  type ApiQuestion,
+  type AuthUser,
 } from './api';
 import { login as authLogin, register as authRegister, signOut as authSignOut, restoreSession } from './auth';
+import type { Lang } from './i18n';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type PostCategory = 'pregnancy' | 'parenting' | 'health' | 'general';
-export type ArticleCategory = 'pregnancy' | 'parenting' | 'health' | 'nutrition';
-export type ExpertTopic = 'medical' | 'mental_health' | 'nutrition' | 'parenting';
+export type PostCategory = 'pregnancy' | 'parenting' | 'health' | 'general' | 'special_needs';
+export type ArticleCategory = 'pregnancy' | 'parenting' | 'health' | 'nutrition' | 'special_needs';
+export type ExpertTopic = 'medical' | 'mental_health' | 'nutrition' | 'parenting' | 'special_needs';
 export type View = 'home' | 'feed' | 'learn' | 'experts' | 'profile';
 
 export interface User {
@@ -284,6 +285,10 @@ const welcomeMessage: ChatMessage = {
 // ─── Store Interface ───────────────────────────────────────────────────────────
 
 interface AppStore {
+  // Language
+  language: Lang;
+  setLanguage: (lang: Lang) => void;
+
   // Navigation
   currentView: View;
   setView: (view: View) => void;
@@ -386,6 +391,13 @@ interface AppStore {
 // ─── Store ─────────────────────────────────────────────────────────────────────
 
 export const useAppStore = create<AppStore>((set, get) => ({
+  // ── Language ───────────────────────────────────────────────────────────────
+  language: (typeof window !== 'undefined' ? (localStorage.getItem('herizone_lang') as Lang | null) : null) ?? 'en',
+  setLanguage: (lang) => {
+    if (typeof window !== 'undefined') localStorage.setItem('herizone_lang', lang);
+    set({ language: lang });
+  },
+
   // ── Navigation ─────────────────────────────────────────────────────────────
   currentView: 'home',
   setView: (view) => set({ currentView: view }),

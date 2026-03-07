@@ -1,5 +1,6 @@
 'use client';
 
+import { translations } from '@/lib/i18n';
 import { useAppStore, type View } from '@/lib/store';
 import {
   ArrowRight,
@@ -17,41 +18,6 @@ const C1 = '#CAA69B'; // warm rose-tan
 const C2 = '#CB978E'; // deep blush
 const C3 = '#D4B9B2'; // soft blush-pink
 
-const features = [
-  {
-    icon: Users,
-    title: 'Community Forum',
-    description:
-      'Connect with thousands of mothers navigating the same joys and challenges. Share, ask, and support each other anonymously or openly.',
-    view: 'feed' as const,
-    cta: 'Join the conversation',
-  },
-  {
-    icon: BookOpen,
-    title: 'Educational Library',
-    description:
-      'Evidence-based articles written by verified healthcare professionals on pregnancy, parenting, nutrition, and mental health.',
-    view: 'learn' as const,
-    cta: 'Browse articles',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Expert Q&A',
-    description:
-      'Get personalized answers from verified OBs, pediatricians, lactation consultants, and child psychologists.',
-    view: 'experts' as const,
-    cta: 'Ask an expert',
-  },
-  {
-    icon: Sparkles,
-    title: 'AI Support',
-    description:
-      'Available 24/7, our AI assistant answers your questions instantly and connects you with relevant resources.',
-    action: 'chat' as const,
-    cta: 'Start chatting',
-  },
-];
-
 const stats = [
   { value: '12,400', suffix: '+', label: 'Mothers\nConnected' },
   { value: '340', suffix: '+', label: 'Expert\nAnswers' },
@@ -60,7 +26,39 @@ const stats = [
 ];
 
 export function HomePage() {
-  const { setView, setChatOpen } = useAppStore();
+  const { setView, setChatOpen, language } = useAppStore();
+  const T = translations[language].home;
+
+  const features = [
+    {
+      icon: Users,
+      title: T.feature_community_title,
+      description: T.feature_community_desc,
+      view: 'feed' as const,
+      cta: T.feature_community_cta,
+    },
+    {
+      icon: BookOpen,
+      title: T.feature_learn_title,
+      description: T.feature_learn_desc,
+      view: 'learn' as const,
+      cta: T.feature_learn_cta,
+    },
+    {
+      icon: MessageSquare,
+      title: T.feature_experts_title,
+      description: T.feature_experts_desc,
+      view: 'experts' as const,
+      cta: T.feature_experts_cta,
+    },
+    {
+      icon: Sparkles,
+      title: T.feature_ai_title,
+      description: T.feature_ai_desc,
+      action: 'chat' as const,
+      cta: T.feature_ai_cta,
+    },
+  ];
 
   return (
     <main className="flex-1 font-sans">
@@ -207,18 +205,18 @@ export function HomePage() {
             <div className="mb-5 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full" style={{ background: C2 }} />
               <span className="text-xs font-bold uppercase tracking-widest" style={{ color: C2 }}>
-                Herizone Community
+                {T.eyebrow}
               </span>
             </div>
 
             {/* headline */}
             <h1 className="text-balance text-[2.8rem] font-extrabold leading-[1.08] tracking-tight text-gray-800 sm:text-5xl lg:text-[3.4rem]">
-              You don&apos;t have
+              {T.headline1}
               <br />
-              to navigate{' '}
+              {T.headline2}{' '}
               <span className="relative inline-block">
                 <span className="relative z-10" style={{ color: C2 }}>
-                  motherhood
+                  {T.headline3}
                 </span>
                 <svg
                   aria-hidden="true"
@@ -231,11 +229,11 @@ export function HomePage() {
                 </svg>
               </span>
               <br />
-              alone.
+              {T.headline4}
             </h1>
 
             <p className="mt-6 max-w-md text-base leading-relaxed text-gray-500">
-              Herizone connects mothers with a supportive community, trusted educational resources, verified healthcare experts, and an AI assistant — at every stage of the journey.
+              {T.subtitle}
             </p>
 
             {/* CTAs */}
@@ -245,7 +243,7 @@ export function HomePage() {
                 className="flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white shadow-md transition-all hover:brightness-105 active:scale-95"
                 style={{ background: C2 }}
               >
-                Join the Community
+                {T.cta_community}
                 <ArrowRight className="h-4 w-4" />
               </button>
               <button
@@ -254,16 +252,16 @@ export function HomePage() {
                 style={{ borderColor: C1, color: C2 }}
               >
                 <BookOpen className="h-4 w-4" />
-                Browse Resources
+                {T.cta_browse}
               </button>
             </div>
 
             {/* trust badges */}
             <div className="mt-10 flex flex-wrap gap-5">
               {[
-                { icon: Shield, text: 'Anonymous posting' },
-                { icon: Heart, text: 'Moderated safe space' },
-                { icon: Sparkles, text: 'Expert replies in 48h' },
+                { icon: Shield, text: T.badge_anonymous },
+                { icon: Heart, text: T.badge_safe },
+                { icon: Sparkles, text: T.badge_expert },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-center gap-1.5 text-sm text-gray-400">
                   <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: C1 }} />
@@ -304,19 +302,19 @@ export function HomePage() {
           <div className="mb-20 grid gap-8 lg:grid-cols-2 lg:items-end">
             <div>
               <h2 className="text-4xl font-black leading-tight tracking-tight text-gray-800 sm:text-5xl">
-                The Herizone
+                {T.experience_title}
                 <br />
                 <span className="font-light italic" style={{ color: C1 }}>
-                  Experience
+                  {T.experience_subtitle}
                 </span>
               </h2>
             </div>
             <div className="lg:pb-2">
               <p className="text-sm leading-relaxed text-gray-400">
-                Our suite of community, expert, and AI-powered tools makes navigating motherhood easy and accessible — from first trimester to toddler years and beyond.
+                {T.experience_desc1}
               </p>
               <p className="mt-3 text-sm leading-relaxed text-gray-400">
-                Every feature is built with your safety, privacy, and wellbeing in mind. Join thousands of women who trust Herizone every day.
+                {T.experience_desc2}
               </p>
             </div>
           </div>
@@ -427,21 +425,21 @@ export function HomePage() {
             <div className="flex-1">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#ecddd9] bg-white px-3.5 py-1.5 text-xs font-semibold" style={{ color: C2 }}>
                 <Stethoscope className="h-3.5 w-3.5" />
-                Expert Contributors
+                {T.expert_banner_tag}
               </div>
               <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-gray-800 sm:text-4xl">
-                Are you a healthcare
+                {T.expert_banner_title1}
                 <br />
-                <span style={{ color: C2 }}>professional?</span>
+                <span style={{ color: C2 }}>{T.expert_banner_title2}</span>
               </h2>
               <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-500">
-                Join Herizone as a verified expert — write evidence-based articles, answer community questions, and make a real impact on mothers' health journeys. OBs, midwives, pediatricians, nutritionists, and mental health professionals welcome.
+                {T.expert_banner_desc}
               </p>
               <div className="mt-6 flex flex-wrap gap-4">
                 {[
-                  { icon: BookOpen, text: 'Publish expert articles' },
-                  { icon: MessageSquare, text: 'Answer Q&A questions' },
-                  { icon: Shield, text: 'Verified expert badge' },
+                  { icon: BookOpen, text: T.expert_publish },
+                  { icon: MessageSquare, text: T.expert_answer },
+                  { icon: Shield, text: T.expert_badge },
                 ].map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-1.5 text-sm text-gray-500">
                     <Icon className="h-4 w-4 shrink-0" style={{ color: C1 }} />
@@ -459,11 +457,11 @@ export function HomePage() {
                 style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
               >
                 <Stethoscope className="h-4 w-4" />
-                Join as Expert
+                {T.expert_banner_cta}
                 <ArrowRight className="h-4 w-4" />
               </a>
               <p className="text-xs text-gray-400 text-center lg:text-left">
-                Applications reviewed within 48 hours
+                {T.expert_banner_review}
               </p>
             </div>
           </div>
@@ -477,13 +475,13 @@ export function HomePage() {
           <div className="text-center mb-16">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold" style={{ color: C2, borderColor: C3 }}>
               <Sparkles className="h-4 w-4" />
-              Premium Membership
+              {T.pricing_tag}
             </div>
             <h2 className="text-4xl font-extrabold tracking-tight text-gray-800 sm:text-5xl mb-4">
-              Get <span style={{ color: C2 }}>Unlimited Support</span>
+              {T.pricing_title1} <span style={{ color: C2 }}>{T.pricing_title2}</span>
             </h2>
             <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-              Start free with 10 AI questions daily, or upgrade to premium for unlimited access and expert question features.
+              {T.pricing_desc}
             </p>
           </div>
 
@@ -492,10 +490,10 @@ export function HomePage() {
             {/* Free Plan */}
             <div className="rounded-3xl border-2 border-gray-200 bg-white p-8 shadow-lg hover:shadow-xl transition-shadow">
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">Freemium</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">{T.plan_free_name}</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-extrabold text-gray-800">Free</span>
-                  <span className="text-gray-500">forever</span>
+                  <span className="text-5xl font-extrabold text-gray-800">{T.plan_free_price}</span>
+                  <span className="text-gray-500">{T.plan_free_forever}</span>
                 </div>
               </div>
               
@@ -503,21 +501,21 @@ export function HomePage() {
                 <li className="flex items-start gap-3">
                   <Heart className="h-5 w-5 shrink-0 mt-0.5" style={{ color: C2 }} />
                   <div>
-                    <span className="font-medium text-gray-800">10 AI Chat Questions Daily</span>
-                    <p className="text-sm text-gray-500">Resets every 24 hours</p>
+                    <span className="font-medium text-gray-800">{T.plan_free_f1}</span>
+                    <p className="text-sm text-gray-500">{T.plan_free_f1_sub}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <Heart className="h-5 w-5 shrink-0 mt-0.5" style={{ color: C2 }} />
-                  <span className="font-medium text-gray-800">Browse articles & community</span>
+                  <span className="font-medium text-gray-800">{T.plan_free_f2}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Heart className="h-5 w-5 shrink-0 mt-0.5" style={{ color: C2 }} />
-                  <span className="font-medium text-gray-800">Book expert consultations</span>
+                  <span className="font-medium text-gray-800">{T.plan_free_f3}</span>
                 </li>
                 <li className="flex items-start gap-3 opacity-50">
                   <div className="h-5 w-5 rounded-full border-2 border-gray-300 shrink-0 mt-0.5" />
-                  <span className="font-medium text-gray-500 line-through">Ask expert questions</span>
+                  <span className="font-medium text-gray-500 line-through">{T.plan_free_f4_locked}</span>
                 </li>
               </ul>
 
@@ -526,7 +524,7 @@ export function HomePage() {
                 className="block w-full rounded-full border-2 px-6 py-3.5 text-center font-semibold text-gray-800 transition-all hover:bg-gray-50"
                 style={{ borderColor: C3 }}
               >
-                Get Started Free
+                {T.plan_free_cta}
               </a>
             </div>
 
@@ -534,12 +532,12 @@ export function HomePage() {
             <div className="rounded-3xl border-4 p-8 shadow-2xl relative overflow-hidden" style={{ borderColor: C2, background: 'linear-gradient(135deg, #fff5f3 0%, #ffefef 100%)' }}>
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                 <div className="rounded-full px-4 py-1 text-xs font-bold text-white shadow-lg" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
-                  MOST POPULAR
+                  {T.plan_premium_popular}
                 </div>
               </div>
 
               <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2" style={{ color: C2 }}>Premium</h3>
+                <h3 className="text-2xl font-bold mb-2" style={{ color: C2 }}>{T.plan_premium_name}</h3>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-extrabold" style={{ color: C2 }}>499 ETB</span>
                   <span className="text-gray-500">/month</span>
@@ -552,8 +550,8 @@ export function HomePage() {
                     <Heart className="h-3 w-3 text-white" />
                   </div>
                   <div>
-                    <span className="font-bold text-gray-800">Unlimited AI Chat Questions</span>
-                    <p className="text-sm text-gray-600">Ask as many as you need, 24/7</p>
+                    <span className="font-bold text-gray-800">{T.plan_premium_f1}</span>
+                    <p className="text-sm text-gray-600">{T.plan_premium_f1_sub}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
@@ -561,21 +559,21 @@ export function HomePage() {
                     <MessageSquare className="h-3 w-3 text-white" />
                   </div>
                   <div>
-                    <span className="font-bold text-gray-800">Ask Expert Questions Directly</span>
-                    <p className="text-sm text-gray-600">Post to verified professionals</p>
+                    <span className="font-bold text-gray-800">{T.plan_premium_f2}</span>
+                    <p className="text-sm text-gray-600">{T.plan_premium_f2_sub}</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
                     <Sparkles className="h-3 w-3 text-white" />
                   </div>
-                  <span className="font-bold text-gray-800">Priority support & exclusive content</span>
+                  <span className="font-bold text-gray-800">{T.plan_premium_f3}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
                     <Shield className="h-3 w-3 text-white" />
                   </div>
-                  <span className="font-bold text-gray-800">Ad-free experience</span>
+                  <span className="font-bold text-gray-800">{T.plan_premium_f4}</span>
                 </li>
               </ul>
 
@@ -584,26 +582,26 @@ export function HomePage() {
                 className="block w-full rounded-full px-6 py-3.5 text-center font-bold text-white shadow-lg transition-all hover:brightness-105 active:scale-95"
                 style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
               >
-                Upgrade to Premium →
+                {T.plan_premium_cta}
               </a>
             </div>
           </div>
 
           {/* Trust badges */}
           <div className="mt-16 text-center">
-            <p className="text-sm text-gray-400 mb-4">Trusted by thousands of mothers worldwide</p>
+            <p className="text-sm text-gray-400 mb-4">{T.trust_label}</p>
             <div className="flex flex-wrap justify-center gap-8 text-gray-400">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span className="text-sm">12,400+ Members</span>
+                <span className="text-sm">{T.trust_members}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                <span className="text-sm">Verified Experts</span>
+                <span className="text-sm">{T.trust_experts}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Heart className="h-4 w-4" />
-                <span className="text-sm">98% Satisfaction</span>
+                <span className="text-sm">{T.trust_satisfaction}</span>
               </div>
             </div>
           </div>

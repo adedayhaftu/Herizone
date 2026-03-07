@@ -139,10 +139,19 @@ export const optionalAuth = async (
       const decoded = jwt.verify(token, secret) as { userId: string };
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
-        select: { id: true, email: true, isAdmin: true, isExpert: true, isBanned: true },
+        select: { id: true, email: true, isAdmin: true, isExpert: true, isBanned: true, isPremium: true, aiQuestionsCount: true, aiQuestionsLimit: true, aiQuestionsResetAt: true },
       });
       if (user && !user.isBanned) {
-        req.user = { id: user.id, email: user.email, isAdmin: user.isAdmin, isExpert: user.isExpert };
+        req.user = {
+          id: user.id,
+          email: user.email,
+          isAdmin: user.isAdmin,
+          isExpert: user.isExpert,
+          isPremium: user.isPremium,
+          aiQuestionsCount: user.aiQuestionsCount,
+          aiQuestionsLimit: user.aiQuestionsLimit,
+          aiQuestionsResetAt: user.aiQuestionsResetAt,
+        };
       }
     }
   } catch {

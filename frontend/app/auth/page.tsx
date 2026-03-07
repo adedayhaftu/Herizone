@@ -3,6 +3,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { translations } from '@/lib/i18n';
 import { useAppStore } from '@/lib/store';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -12,7 +13,8 @@ type Mode = 'login' | 'register';
 
 export default function AuthPage() {
   const router = useRouter();
-  const { login, register, isAuthenticated, authLoading } = useAppStore();
+  const { login, register, isAuthenticated, authLoading, language } = useAppStore();
+  const T = translations[language].auth;
 
   const [mode, setMode] = useState<Mode>('login');
   const [error, setError] = useState('');
@@ -101,12 +103,10 @@ export default function AuthPage() {
           {/* Heading */}
           <div className="space-y-1.5">
             <h1 className="text-4xl font-semibold tracking-tight text-white">
-              {mode === 'login' ? 'Welcome back' : 'Create account'}
+              {mode === 'login' ? T.login_title : T.register_title}
             </h1>
             <p className="text-base text-white/55">
-              {mode === 'login'
-                ? 'Please enter your details.'
-                : 'Join thousands of women supporting each other.'}
+              {mode === 'login' ? T.login_subtitle : T.register_subtitle}
             </p>
           </div>
 
@@ -117,12 +117,12 @@ export default function AuthPage() {
               {mode === 'register' && (
                 <div className="space-y-1">
                   <Label htmlFor="name" className="text-sm font-medium text-white/75">
-                    Name <span className="text-white/35">(optional)</span>
+                    {T.name_label}
                   </Label>
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Your name"
+                    placeholder={T.name_placeholder}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
@@ -134,12 +134,12 @@ export default function AuthPage() {
               {/* Email */}
               <div className="space-y-1">
                 <Label htmlFor="email" className="text-sm font-medium text-white/75">
-                  E-mail
+                  {T.email_label}
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your e-mail"
+                  placeholder={T.email_placeholder}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -151,7 +151,7 @@ export default function AuthPage() {
               {/* Password */}
               <div className="space-y-1">
                 <Label htmlFor="password" className="text-sm font-medium text-white/75">
-                  Password
+                  {T.password_label}
                 </Label>
                 <Input
                   id="password"
@@ -169,7 +169,7 @@ export default function AuthPage() {
               {mode === 'register' && (
                 <div className="space-y-1">
                   <Label htmlFor="confirm" className="text-sm font-medium text-white/75">
-                    Confirm Password
+                    {T.confirm_password_label}
                   </Label>
                   <Input
                     id="confirm"
@@ -196,14 +196,14 @@ export default function AuthPage() {
                       htmlFor="remember"
                       className="text-sm text-white/60 cursor-pointer select-none"
                     >
-                      Remember me
+                      {language === 'am' ? 'አስታውሰኝ' : 'Remember me'}
                     </label>
                   </div>
                   <button
                     type="button"
                     className="text-sm text-white/60 hover:text-white transition-colors"
                   >
-                    Forgot your password?
+                    {language === 'am' ? 'የይለፍ ቃልዎን ረሱ?' : 'Forgot your password?'}
                   </button>
                 </div>
               )}
@@ -215,7 +215,7 @@ export default function AuthPage() {
                 </p>
               )}
 
-              {/* Submit – uses theme primary (rose) */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={authLoading}
@@ -224,12 +224,12 @@ export default function AuthPage() {
                 {authLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    {mode === 'login' ? 'Signing in…' : 'Creating account…'}
+                    {mode === 'login' ? T.signing_in : T.creating}
                   </>
                 ) : mode === 'login' ? (
-                  'Log in'
+                  T.sign_in
                 ) : (
-                  'Create account'
+                  T.create_account
                 )}
               </button>
             </form>
@@ -238,24 +238,24 @@ export default function AuthPage() {
             <p className="text-center text-sm text-white/45">
               {mode === 'login' ? (
                 <>
-                  Don&apos;t have an account?{' '}
+                  {T.no_account}{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('register')}
                     className="font-semibold text-white hover:text-primary transition-colors"
                   >
-                    Register here
+                    {T.sign_up}
                   </button>
                 </>
               ) : (
                 <>
-                  Already have an account?{' '}
+                  {T.have_account}{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('login')}
                     className="font-semibold text-white hover:text-primary transition-colors"
                   >
-                    Sign in here
+                    {T.sign_in_link}
                   </button>
                 </>
               )}
@@ -265,3 +265,4 @@ export default function AuthPage() {
     </div>
   );
 }
+

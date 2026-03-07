@@ -102,6 +102,7 @@ enum PostCategory {
   parenting
   health
   general
+  special_needs
 
   @@map("post_category")
 }
@@ -187,6 +188,7 @@ enum ArticleCategory {
   parenting
   health
   nutrition
+  special_needs
 
   @@map("article_category")
 }
@@ -222,6 +224,7 @@ enum QuestionTopic {
   mental_health
   nutrition
   parenting
+  special_needs
 
   @@map("question_topic")
 }
