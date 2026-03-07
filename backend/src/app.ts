@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.routes';
 import bookmarkRoutes from './routes/bookmarks.routes';
 import chatRoutes from './routes/chat.routes';
 import commentRoutes from './routes/comments.routes';
+import expertApplicationRoutes from './routes/expertApplications.routes';
 import knowledgeRoutes from './routes/knowledge.routes';
 import postRoutes from './routes/posts.routes';
 import questionRoutes from './routes/questions.routes';
@@ -49,6 +50,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/expert-applications', expertApplicationRoutes);
 
 // ─── Error Handling ───────────────────────────────────────────────────────────
 app.use(notFound);

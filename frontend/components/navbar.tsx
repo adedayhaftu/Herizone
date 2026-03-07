@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAppStore, type View } from '@/lib/store';
-import { BookOpen, Heart, Home, LogOut, Menu, MessageSquare, Settings, User, Users } from 'lucide-react';
+import { BookOpen, Heart, Home, LogOut, Menu, MessageSquare, PenLine, Settings, Stethoscope, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -92,6 +92,17 @@ export function Navbar() {
 
         {/* ── Right side ───────────────────────────────────────────────── */}
         <div className="flex items-center gap-2.5">
+          {/* Join as Expert button — visible for guests and logged-in non-expert users */}
+          {(!isAuthenticated || (currentUser && !currentUser.isExpert && !currentUser.isAdmin)) && (
+            <Link
+              href="/join-as-expert"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-105"
+              style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}
+            >
+              <Stethoscope className="h-3.5 w-3.5" />
+              Join as Expert
+            </Link>
+          )}
           {isAuthenticated && currentUser ? (
             /* Profile dropdown */
             <DropdownMenu>
@@ -128,6 +139,22 @@ export function Navbar() {
                   <User className="h-4 w-4" style={{ color: C1 }} />
                   My Profile
                 </DropdownMenuItem>
+                {currentUser?.isExpert && !currentUser?.isAdmin && (
+                  <>
+                    <DropdownMenuSeparator style={{ background: '#ecddd9' }} />
+                    <DropdownMenuItem
+                      onClick={() => {}}
+                      className="gap-2 cursor-pointer rounded-lg text-sm"
+                      style={{ color: '#3d2b27' }}
+                      asChild
+                    >
+                      <a href="/expert-articles">
+                        <PenLine className="h-4 w-4" style={{ color: C1 }} />
+                        My Articles
+                      </a>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 {currentUser?.isAdmin && (
                   <>
                     <DropdownMenuSeparator style={{ background: '#ecddd9' }} />
@@ -137,9 +164,36 @@ export function Navbar() {
                       style={{ color: '#3d2b27' }}
                       asChild
                     >
+                      <a href="/expert-articles">
+                        <PenLine className="h-4 w-4" style={{ color: C1 }} />
+                        My Articles
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {}}
+                      className="gap-2 cursor-pointer rounded-lg text-sm"
+                      style={{ color: '#3d2b27' }}
+                      asChild
+                    >
                       <a href="/admin-articles">
                         <Settings className="h-4 w-4" style={{ color: C1 }} />
-                        Manage Articles
+                        Review &amp; Manage
+                      </a>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {!currentUser?.isExpert && !currentUser?.isAdmin && (
+                  <>
+                    <DropdownMenuSeparator style={{ background: '#ecddd9' }} />
+                    <DropdownMenuItem
+                      onClick={() => {}}
+                      className="gap-2 cursor-pointer rounded-lg text-sm"
+                      style={{ color: '#3d2b27' }}
+                      asChild
+                    >
+                      <a href="/join-as-expert">
+                        <Stethoscope className="h-4 w-4" style={{ color: C1 }} />
+                        Join as Expert
                       </a>
                     </DropdownMenuItem>
                   </>
@@ -226,6 +280,19 @@ export function Navbar() {
                 })}
               </div>
 
+              {(!isAuthenticated || (currentUser && !currentUser.isExpert && !currentUser.isAdmin)) && (
+                <div className="mt-6 px-1">
+                  <Link
+                    href="/join-as-expert"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-white shadow-sm"
+                    style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}
+                  >
+                    <Stethoscope className="h-4 w-4" />
+                    Join as Expert
+                  </Link>
+                </div>
+              )}
               {!isAuthenticated && (
                 <div className="mt-6 flex flex-col gap-2 px-1">
                   <Link

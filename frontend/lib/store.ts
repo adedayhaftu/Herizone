@@ -2,12 +2,14 @@ import { create } from 'zustand';
 import {
     articlesApi,
     chatApi,
+    expertApplicationsApi,
     postsApi,
     questionsApi,
     type ApiAnswer,
     type ApiArticle,
     type ApiChatMessage,
     type ApiComment,
+    type ApiExpertApplication,
     type ApiPost,
     type ApiQuestion,
     type AuthUser,
@@ -63,8 +65,24 @@ export interface Article {
   category: ArticleCategory;
   tags: string[];
   author: string;
+  authorId: string | null;
+  status: 'draft' | 'pending_review' | 'published' | 'rejected';
   readTime: number;
   timestamp: Date;
+}
+
+export interface ExpertApplication {
+  id: string;
+  userId: string;
+  bio: string;
+  credentials: string;
+  specialty: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewNote: string | null;
+  createdAt: Date;
+  userName?: string;
+  userEmail?: string;
+  userAvatar?: string;
 }
 
 export interface Question {
@@ -138,6 +156,8 @@ function mapArticle(a: ApiArticle): Article {
     category: a.category as ArticleCategory,
     tags: a.tags ?? [],
     author: a.author?.name ?? 'Herizone Team',
+    authorId: a.author?.id ?? null,
+    status: (a.status as Article['status']) ?? 'published',
     readTime: Math.max(1, Math.round(words / 200)),
     timestamp: new Date(a.createdAt),
   };
@@ -189,6 +209,22 @@ function mapAuthUser(u: AuthUser): User {
     isExpert: u.isExpert,
     isAdmin: u.isAdmin,
     bookmarks: [],
+  };
+}
+
+function mapExpertApplication(a: ApiExpertApplication): ExpertApplication {
+  return {
+    id: a.id,
+    userId: a.userId,
+    bio: a.bio,
+    credentials: a.credentials,
+    specialty: a.specialty,
+    status: a.status,
+    reviewNote: a.reviewNote,
+    createdAt: new Date(a.createdAt),
+    userName: a.user?.name ?? undefined,
+    userEmail: a.user?.email,
+    userAvatar: a.user?.profilePicture ?? undefined,
   };
 }
 
@@ -244,7 +280,15 @@ interface AppStore {
   selectedArticle: Article | null;
   articleFilter: ArticleCategory | 'all';
   articleSearch: string;
+  pendingArticles: Article[];
+  pendingArticlesLoading: boolean;
+  myExpertApplication: ExpertApplication | null;
+  expertApplications: ExpertApplication[];
   fetchArticles: () => Promise<void>;
+  fetchMyArticles: () => Promise<void>;
+  fetchPendingArticles: () => Promise<void>;
+  fetchExpertApplications: () => Promise<void>;
+  fetchMyApplication: () => Promise<void>;
   setArticleFilter: (filter: ArticleCategory | 'all') => void;
   setArticleSearch: (search: string) => void;
   selectArticle: (article: Article | null) => void;
@@ -252,7 +296,12 @@ interface AppStore {
   getFilteredArticles: () => Article[];
   createArticle: (data: { title: string; content: string; category: ArticleCategory; tags: string[] }) => Promise<void>;
   updateArticle: (id: string, data: { title?: string; content?: string; category?: ArticleCategory; tags?: string[] }) => Promise<void>;
+  publishArticle: (id: string) => Promise<void>;
+  rejectArticle: (id: string) => Promise<void>;
   deleteArticle: (id: string) => Promise<void>;
+  applyAsExpert: (data: { bio: string; credentials: string; specialty: string }) => Promise<void>;
+  approveExpertApplication: (id: string) => Promise<void>;
+  rejectExpertApplication: (id: string, reviewNote?: string) => Promise<void>;
 
   // Expert Q&A
   questions: Question[];
@@ -455,6 +504,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   selectedArticle: null,
   articleFilter: 'all',
   articleSearch: '',
+  pendingArticles: [],
+  pendingArticlesLoading: false,
+  myExpertApplication: null,
+  expertApplications: [],
 
   fetchArticles: async () => {
     set({ articlesLoading: true });
@@ -469,6 +522,48 @@ export const useAppStore = create<AppStore>((set, get) => ({
       console.error('fetchArticles error', err);
     } finally {
       set({ articlesLoading: false });
+    }
+  },
+
+  fetchMyArticles: async () => {
+    set({ articlesLoading: true });
+    try {
+      const { articles } = await articlesApi.getArticles({ mine: true });
+      set({ articles: articles.map(mapArticle) });
+    } catch (err) {
+      console.error('fetchMyArticles error', err);
+    } finally {
+      set({ articlesLoading: false });
+    }
+  },
+
+  fetchPendingArticles: async () => {
+    set({ pendingArticlesLoading: true });
+    try {
+      const { articles } = await articlesApi.getPendingArticles();
+      set({ pendingArticles: articles.map(mapArticle) });
+    } catch (err) {
+      console.error('fetchPendingArticles error', err);
+    } finally {
+      set({ pendingArticlesLoading: false });
+    }
+  },
+
+  fetchExpertApplications: async () => {
+    try {
+      const { applications } = await expertApplicationsApi.getAll();
+      set({ expertApplications: applications.map(mapExpertApplication) });
+    } catch (err) {
+      console.error('fetchExpertApplications error', err);
+    }
+  },
+
+  fetchMyApplication: async () => {
+    try {
+      const { application } = await expertApplicationsApi.getMyApplication();
+      set({ myExpertApplication: application ? mapExpertApplication(application) : null });
+    } catch (err) {
+      console.error('fetchMyApplication error', err);
     }
   },
 
@@ -521,19 +616,60 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   createArticle: async (data) => {
-    // Only for admin, assumes backend checks auth
     const { article } = await articlesApi.createArticle(data);
     set((s) => ({ articles: [mapArticle(article), ...s.articles] }));
   },
   updateArticle: async (id, data) => {
     const { article } = await articlesApi.updateArticle(id, data);
+    const mapped = mapArticle(article);
     set((s) => ({
-      articles: s.articles.map((a) => (a.id === id ? mapArticle(article) : a)),
+      articles: s.articles.map((a) => (a.id === id ? mapped : a)),
+      pendingArticles: s.pendingArticles.map((a) => (a.id === id ? mapped : a)),
+    }));
+  },
+  publishArticle: async (id) => {
+    const { article } = await articlesApi.publishArticle(id);
+    const mapped = mapArticle(article);
+    set((s) => ({
+      pendingArticles: s.pendingArticles.filter((a) => a.id !== id),
+      articles: s.articles.some((a) => a.id === id)
+        ? s.articles.map((a) => (a.id === id ? mapped : a))
+        : [mapped, ...s.articles],
+    }));
+  },
+  rejectArticle: async (id) => {
+    await articlesApi.rejectArticle(id);
+    set((s) => ({
+      pendingArticles: s.pendingArticles.filter((a) => a.id !== id),
     }));
   },
   deleteArticle: async (id) => {
     await articlesApi.deleteArticle(id);
-    set((s) => ({ articles: s.articles.filter((a) => a.id !== id) }));
+    set((s) => ({
+      articles: s.articles.filter((a) => a.id !== id),
+      pendingArticles: s.pendingArticles.filter((a) => a.id !== id),
+    }));
+  },
+
+  applyAsExpert: async (data) => {
+    const { application } = await expertApplicationsApi.apply(data);
+    set({ myExpertApplication: mapExpertApplication(application) });
+  },
+  approveExpertApplication: async (id) => {
+    await expertApplicationsApi.approve(id);
+    set((s) => ({
+      expertApplications: s.expertApplications.map((a) =>
+        a.id === id ? { ...a, status: 'approved' as const } : a
+      ),
+    }));
+  },
+  rejectExpertApplication: async (id, reviewNote) => {
+    await expertApplicationsApi.reject(id, reviewNote);
+    set((s) => ({
+      expertApplications: s.expertApplications.map((a) =>
+        a.id === id ? { ...a, status: 'rejected' as const, reviewNote: reviewNote ?? null } : a
+      ),
+    }));
   },
 
   // ── Expert Q&A ─────────────────────────────────────────────────────────────

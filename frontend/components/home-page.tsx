@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Shield,
   Sparkles,
+  Stethoscope,
   Users,
 } from 'lucide-react';
 
@@ -410,6 +411,64 @@ export function HomePage() {
           </div>
         </div>
       </section> */}
+
+      {/* ── JOIN AS EXPERT BANNER ─────────────────────────────────── */}
+      <section
+        className="relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8"
+        style={{ background: 'linear-gradient(135deg, #f9ede9 0%, #f0e8f5 50%, #e8f4f0 100%)' }}
+      >
+        {/* Decorative blobs */}
+        <div aria-hidden className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full opacity-20" style={{ background: C2 }} />
+        <div aria-hidden className="pointer-events-none absolute -bottom-16 right-10 h-56 w-56 rounded-full opacity-15" style={{ background: C1 }} />
+
+        <div className="relative mx-auto max-w-5xl">
+          <div className="rounded-3xl border border-white/80 bg-white/60 backdrop-blur-sm shadow-xl px-8 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
+            {/* Left */}
+            <div className="flex-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#ecddd9] bg-white px-3.5 py-1.5 text-xs font-semibold" style={{ color: C2 }}>
+                <Stethoscope className="h-3.5 w-3.5" />
+                Expert Contributors
+              </div>
+              <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-gray-800 sm:text-4xl">
+                Are you a healthcare
+                <br />
+                <span style={{ color: C2 }}>professional?</span>
+              </h2>
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-gray-500">
+                Join Herizone as a verified expert — write evidence-based articles, answer community questions, and make a real impact on mothers' health journeys. OBs, midwives, pediatricians, nutritionists, and mental health professionals welcome.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-4">
+                {[
+                  { icon: BookOpen, text: 'Publish expert articles' },
+                  { icon: MessageSquare, text: 'Answer Q&A questions' },
+                  { icon: Shield, text: 'Verified expert badge' },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex items-center gap-1.5 text-sm text-gray-500">
+                    <Icon className="h-4 w-4 shrink-0" style={{ color: C1 }} />
+                    {text}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right */}
+            <div className="mt-8 flex shrink-0 flex-col items-center gap-4 lg:mt-0 lg:items-start">
+              <a
+                href="/join-as-expert"
+                className="flex items-center gap-2 rounded-full px-8 py-4 text-sm font-semibold text-white shadow-lg transition-all hover:brightness-105 active:scale-95"
+                style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
+              >
+                <Stethoscope className="h-4 w-4" />
+                Join as Expert
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <p className="text-xs text-gray-400 text-center lg:text-left">
+                Applications reviewed within 48 hours
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </main>
   );

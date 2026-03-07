@@ -18,6 +18,26 @@ export interface AuthRequest<
   };
 }
 
+// Retry a DB call once if the connection was dropped (Neon auto-suspend)
+async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const isConnErr =
+        err?.code === 'P2024' ||
+        err?.code === 'P1001' ||
+        err?.message?.includes("Can't reach database");
+      if (isConnErr && i < retries - 1) {
+        await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('Unreachable');
+}
+
 export const authenticate = async (
   req: AuthRequest,
   res: Response,
@@ -34,10 +54,12 @@ export const authenticate = async (
     const secret = process.env.JWT_SECRET!;
     const decoded = jwt.verify(token, secret) as { userId: string };
 
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: { id: true, email: true, isAdmin: true, isExpert: true, isBanned: true },
-    });
+    const user = await withRetry(() =>
+      prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { id: true, email: true, isAdmin: true, isExpert: true, isBanned: true },
+      })
+    );
 
     if (!user) {
       res.status(401).json({ error: 'User not found' });

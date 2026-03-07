@@ -4,12 +4,19 @@ import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 
-// GET /api/articles
+// GET /api/articles  — public returns published; ?mine=true returns own articles for expert
 export const getArticles = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { category, search, tags, page = '1', limit = '20' } = req.query as Record<string, string>;
+  const { category, search, tags, page = '1', limit = '20', mine } = req.query as Record<string, string>;
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   const where: any = {};
+
+  if (mine === 'true' && req.user) {
+    where.authorId = req.user.id;
+  } else {
+    where.status = 'published';
+  }
+
   if (category) where.category = category;
   if (search) {
     where.OR = [
@@ -33,6 +40,7 @@ export const getArticles = async (req: AuthRequest, res: Response): Promise<void
         title: true,
         category: true,
         tags: true,
+        status: true,
         createdAt: true,
         author: { select: { id: true, name: true } },
       },
@@ -41,6 +49,16 @@ export const getArticles = async (req: AuthRequest, res: Response): Promise<void
   ]);
 
   res.json({ articles, total, page: parseInt(page), limit: parseInt(limit) });
+};
+
+// GET /api/articles/pending  — admin: all articles awaiting review
+export const getPendingArticles = async (req: AuthRequest, res: Response): Promise<void> => {
+  const articles = await prisma.article.findMany({
+    where: { status: 'pending_review' },
+    orderBy: { createdAt: 'asc' },
+    include: { author: { select: { id: true, name: true, profilePicture: true } } },
+  });
+  res.json({ articles });
 };
 
 // GET /api/articles/:id
@@ -55,22 +73,39 @@ export const getArticle = async (req: AuthRequest, res: Response): Promise<void>
     return;
   }
 
+  // Non-admins can only read their own non-published articles
+  if (article.status !== 'published') {
+    if (!req.user || (req.user.id !== article.authorId && !req.user.isAdmin)) {
+      res.status(404).json({ error: 'Article not found' });
+      return;
+    }
+  }
+
   res.json({ article });
 };
 
-// POST /api/articles  (admin only)
+// POST /api/articles  — expert submits (pending_review); admin can create as published
 export const createArticle = async (req: AuthRequest, res: Response): Promise<void> => {
   const { title, content, category, tags = [] } = req.body;
 
+  const status = req.user!.isAdmin ? 'published' : 'pending_review';
+
   const article = await prisma.article.create({
-    data: { title, content, category, tags, authorId: req.user!.id },
+    data: {
+      title,
+      content,
+      category,
+      tags,
+      status: status as any,
+      authorId: req.user!.id,
+    },
     include: { author: { select: { id: true, name: true } } },
   });
 
   res.status(201).json({ article });
 };
 
-// PATCH /api/articles/:id  (admin only)
+// PATCH /api/articles/:id  — expert edits own draft/pending; admin edits any
 export const updateArticle = async (req: AuthRequest, res: Response): Promise<void> => {
   const { title, content, category, tags } = req.body;
 
@@ -80,6 +115,17 @@ export const updateArticle = async (req: AuthRequest, res: Response): Promise<vo
     return;
   }
 
+  if (!req.user!.isAdmin) {
+    if (exists.authorId !== req.user!.id) {
+      res.status(403).json({ error: 'Not allowed' });
+      return;
+    }
+    if (exists.status === 'published') {
+      res.status(403).json({ error: 'Cannot edit a published article. Contact an admin.' });
+      return;
+    }
+  }
+
   const article = await prisma.article.update({
     where: { id: req.params.id },
     data: {
@@ -87,18 +133,56 @@ export const updateArticle = async (req: AuthRequest, res: Response): Promise<vo
       ...(content !== undefined && { content }),
       ...(category !== undefined && { category }),
       ...(tags !== undefined && { tags }),
+      // Re-queue for review when expert edits a rejected article
+      ...(!req.user!.isAdmin && exists.status === 'rejected' && { status: 'pending_review' as any }),
     },
   });
 
   res.json({ article });
 };
 
-// DELETE /api/articles/:id  (admin only)
+// PATCH /api/articles/:id/publish  — admin publishes
+export const publishArticle = async (req: AuthRequest, res: Response): Promise<void> => {
+  const exists = await prisma.article.findUnique({ where: { id: req.params.id } });
+  if (!exists) { res.status(404).json({ error: 'Article not found' }); return; }
+
+  const article = await prisma.article.update({
+    where: { id: req.params.id },
+    data: { status: 'published' as any },
+    include: { author: { select: { id: true, name: true } } },
+  });
+  res.json({ article });
+};
+
+// PATCH /api/articles/:id/reject  — admin rejects
+export const rejectArticle = async (req: AuthRequest, res: Response): Promise<void> => {
+  const exists = await prisma.article.findUnique({ where: { id: req.params.id } });
+  if (!exists) { res.status(404).json({ error: 'Article not found' }); return; }
+
+  const article = await prisma.article.update({
+    where: { id: req.params.id },
+    data: { status: 'rejected' as any },
+  });
+  res.json({ article });
+};
+
+// DELETE /api/articles/:id  — expert deletes own non-published; admin deletes any
 export const deleteArticle = async (req: AuthRequest, res: Response): Promise<void> => {
   const exists = await prisma.article.findUnique({ where: { id: req.params.id } });
   if (!exists) {
     res.status(404).json({ error: 'Article not found' });
     return;
+  }
+
+  if (!req.user!.isAdmin) {
+    if (exists.authorId !== req.user!.id) {
+      res.status(403).json({ error: 'Not allowed' });
+      return;
+    }
+    if (exists.status === 'published') {
+      res.status(403).json({ error: 'Cannot delete a published article. Contact an admin.' });
+      return;
+    }
   }
 
   await prisma.article.delete({ where: { id: req.params.id } });

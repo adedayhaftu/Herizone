@@ -65,33 +65,6 @@ export function Footer() {
 
       {/* ── Main footer body — cream bg, photos anchored left/right bottom ── */}
       <div className="relative overflow-hidden" style={{ background: BG, borderTop: `1px solid #ecddd9` }}>
-
-        {/* Left photo — anchored to bottom-left, no frame */}
-        <img
-          src="/image copy 8.png"
-          alt="Pregnant mother"
-          className="absolute bottom-0 left-0 z-0 pointer-events-none select-none"
-          style={{
-            width: 160,
-            height: 220,
-            objectFit: 'cover',
-            objectPosition: 'top',
-          }}
-        />
-
-        {/* Right photo — anchored to bottom-right, no frame */}
-        <img
-          src="/hero-2.png"
-          alt="Happy mother"
-          className="absolute bottom-0 right-0 z-0 pointer-events-none select-none"
-          style={{
-            width: 160,
-            height: 220,
-            objectFit: 'cover',
-            objectPosition: 'top',
-          }}
-        />
-
         {/* Content sits on top of the photos */}
         <div className="relative z-10">
         <div className="mx-auto max-w-7xl px-6 pb-8 pt-8 lg:px-10">

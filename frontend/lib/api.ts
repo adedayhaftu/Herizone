@@ -171,35 +171,72 @@ export const postsApi = {
 };
 
 // ── Articles ──────────────────────────────────────────────────────────────────
+export type ArticleStatus = 'draft' | 'pending_review' | 'published' | 'rejected';
+
 export interface ApiArticle {
   id: string;
   title: string;
   content: string;
   category: string;
   tags: string[];
+  status: ArticleStatus;
   createdAt: string;
-  author: { id: string; name: string | null } | null;
+  author: { id: string; name: string | null; profilePicture?: string | null } | null;
 }
 
 export const articlesApi = {
-  getArticles: (params?: { category?: string; search?: string }) => {
+  getArticles: (params?: { category?: string; search?: string; mine?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.category) qs.set('category', params.category);
     if (params?.search) qs.set('search', params.search);
-    // Public — guests can browse the library
-    return guestRequest<{ articles: ApiArticle[]; total: number }>(`/api/articles?${qs}`);
+    if (params?.mine) qs.set('mine', 'true');
+    // mine=true requires auth; otherwise public
+    return params?.mine
+      ? api.get<{ articles: ApiArticle[]; total: number }>(`/api/articles?${qs}`)
+      : guestRequest<{ articles: ApiArticle[]; total: number }>(`/api/articles?${qs}`);
   },
   getArticle: (id: string) =>
-    // Public — guests can read a single article
     guestRequest<{ article: ApiArticle }>(`/api/articles/${id}`),
+  getPendingArticles: () =>
+    api.get<{ articles: ApiArticle[] }>('/api/articles/pending'),
   createArticle: (data: { title: string; content: string; category: string; tags: string[] }) =>
     api.post<{ article: ApiArticle }>('/api/articles', data),
   updateArticle: (id: string, data: { title?: string; content?: string; category?: string; tags?: string[] }) =>
     api.patch<{ article: ApiArticle }>(`/api/articles/${id}`, data),
+  publishArticle: (id: string) =>
+    api.patch<{ article: ApiArticle }>(`/api/articles/${id}/publish`, {}),
+  rejectArticle: (id: string) =>
+    api.patch<{ article: ApiArticle }>(`/api/articles/${id}/reject`, {}),
   deleteArticle: (id: string) => api.delete<{ message: string }>(`/api/articles/${id}`),
   bookmark: (id: string) => api.post(`/api/articles/${id}/bookmark`),
   unbookmark: (id: string) => api.delete(`/api/articles/${id}/bookmark`),
   getBookmarks: () => api.get<{ bookmarks: ApiArticle[] }>('/api/bookmarks'),
+};
+
+// ── Expert Applications ───────────────────────────────────────────────────────
+export interface ApiExpertApplication {
+  id: string;
+  userId: string;
+  bio: string;
+  credentials: string;
+  specialty: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewNote: string | null;
+  createdAt: string;
+  user?: { id: string; name: string | null; email: string; profilePicture: string | null };
+}
+
+export const expertApplicationsApi = {
+  apply: (data: { bio: string; credentials: string; specialty: string }) =>
+    api.post<{ application: ApiExpertApplication }>('/api/expert-applications', data),
+  getMyApplication: () =>
+    api.get<{ application: ApiExpertApplication | null }>('/api/expert-applications/me'),
+  getAll: () =>
+    api.get<{ applications: ApiExpertApplication[] }>('/api/expert-applications'),
+  approve: (id: string) =>
+    api.patch<{ message: string }>(`/api/expert-applications/${id}/approve`, {}),
+  reject: (id: string, reviewNote?: string) =>
+    api.patch<{ message: string }>(`/api/expert-applications/${id}/reject`, { reviewNote }),
 };
 
 // ── Expert Q&A ────────────────────────────────────────────────────────────────

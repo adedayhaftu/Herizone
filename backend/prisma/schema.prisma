@@ -35,6 +35,7 @@ model User {
   chatFeedback   ChatFeedback[]
   reports        Report[]
   articles       Article[]
+  expertApplications ExpertApplication[]
 
   @@map("users")
 }
@@ -120,19 +121,45 @@ model Like {
 }
 
 model Article {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   title     String
   content   String
   category  ArticleCategory
   tags      String[]
-  authorId  String?  @map("author_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  status    ArticleStatus   @default(pending_review)
+  authorId  String?         @map("author_id") @db.Uuid
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
 
   author    User?      @relation(fields: [authorId], references: [id])
   bookmarks Bookmark[]
 
   @@map("articles")
+}
+
+enum ArticleStatus {
+  draft
+  pending_review
+  published
+  rejected
+
+  @@map("article_status")
+}
+
+model ExpertApplication {
+  id          String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String                  @map("user_id") @db.Uuid
+  bio         String
+  credentials String
+  specialty   String
+  status      ExpertApplicationStatus @default(pending)
+  reviewNote  String?                 @map("review_note")
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expert_applications")
 }
 
 enum ArticleCategory {
@@ -256,4 +283,12 @@ enum ReportStatus {
   dismissed
 
   @@map("report_status")
+}
+
+enum ExpertApplicationStatus {
+  pending
+  approved
+  rejected
+
+  @@map("expert_application_status")
 }
