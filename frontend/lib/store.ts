@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import {
-    articlesApi,
-    chatApi,
-    expertApplicationsApi,
-    postsApi,
-    questionsApi,
-    type ApiAnswer,
-    type ApiArticle,
-    type ApiChatMessage,
-    type ApiComment,
-    type ApiExpert,
-    type ApiExpertApplication,
-    type ApiPost,
-    type ApiQuestion,
-    type AuthUser,
+  articlesApi,
+  chatApi,
+  expertApplicationsApi,
+  postsApi,
+  questionsApi,
+  type ApiAnswer,
+  type ApiArticle,
+  type ApiChatMessage,
+  type ApiComment,
+  type ApiExpert,
+  type ApiExpertApplication,
+  type ApiPost,
+  type ApiQuestion,
+  type AuthUser,
 } from './api';
 import { login as authLogin, register as authRegister, signOut as authSignOut, restoreSession } from './auth';
 
@@ -360,6 +360,7 @@ interface AppStore {
   fetchQuestions: () => Promise<void>;
   addQuestion: (data: { question: string; topic: ExpertTopic }) => Promise<void>;
   selectQuestion: (q: Question | null) => Promise<void>;
+  answerQuestion: (questionId: string, answer: string) => Promise<void>;
   setExpertFilter: (filter: ExpertTopic | 'all') => void;
   setExpertSearch: (search: string) => void;
   getFilteredQuestions: () => Question[];
@@ -772,6 +773,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
         set((s) => ({ answers: { ...s.answers, [q.id]: answers } }));
       } catch {}
     }
+  },
+
+  answerQuestion: async (questionId, answer) => {
+    const { answer: ans } = await questionsApi.answerQuestion(questionId, answer);
+    const mapped = mapAnswer(ans, questionId);
+    set((s) => ({
+      answers: {
+        ...s.answers,
+        [questionId]: [...(s.answers[questionId] ?? []), mapped],
+      },
+      questions: s.questions.map((q) =>
+        q.id === questionId ? { ...q, answerCount: q.answerCount + 1 } : q
+      ),
+    }));
   },
 
   setExpertFilter: (filter) => set({ expertFilter: filter }),

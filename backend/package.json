@@ -10,6 +10,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed:knowledge": "ts-node scripts/seed-knowledge.ts",
+    "seed": "ts-node scripts/seed.ts",
     "create:admin": "ts-node scripts/create-admin.ts"
   },
   "dependencies": {

@@ -11,9 +11,14 @@ import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 
+// ── Brand palette (matches learn / experts / home pages) ──────────────────────
+const C2  = '#CB978E';
+const C3  = '#D4B9B2';
+const CTA = 'linear-gradient(135deg, #c4706a, #a85550)';
+
 const QUICK_PROMPTS = [
-  'How do I manage morning sickness?',
-  'When should I worry about my baby\'s crying?',
+  "How do I manage morning sickness?",
+  "When should I worry about my baby's crying?",
   'Tips for breastfeeding difficulties',
   'Signs of postpartum depression',
   'Safe exercises during pregnancy',
@@ -45,19 +50,13 @@ export function ChatbotWidget() {
   const handleSend = () => {
     const content = inputValue.trim();
     if (!content || chatLoading) return;
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true);
-      return;
-    }
+    if (!isAuthenticated) { setShowLoginPrompt(true); return; }
     sendChatMessage(content);
     setInputValue('');
   };
 
   const handleQuickPrompt = (prompt: string) => {
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true);
-      return;
-    }
+    if (!isAuthenticated) { setShowLoginPrompt(true); return; }
     sendChatMessage(prompt);
   };
 
@@ -66,11 +65,13 @@ export function ChatbotWidget() {
     setFeedbackGiven({ ...feedbackGiven, [messageId]: true });
   };
 
+  /* ── FAB (chat closed) ───────────────────────────────────────────────── */
   if (!chatOpen) {
     return (
       <button
         onClick={() => setChatOpen(true)}
-        className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 text-white shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-pink-500/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pink-400 focus-visible:ring-offset-2 animate-pulse"
+        className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-2xl transition-all duration-300 hover:scale-110 hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 animate-pulse"
+        style={{ background: CTA, boxShadow: '0 8px 30px rgba(164,80,70,0.45)', ['--tw-ring-color' as string]: C2 }}
         aria-label="Open AI support chat"
       >
         <Sparkles className="h-7 w-7" />
@@ -78,20 +79,28 @@ export function ChatbotWidget() {
     );
   }
 
+  /* ── Widget (chat open) ──────────────────────────────────────────────── */
   return (
     <div
       className={cn(
-        'fixed bottom-8 right-8 z-50 flex flex-col rounded-3xl border-2 border-pink-200 dark:border-pink-200 bg-gradient-to-br from-white via-pink-50/30 to-purple-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 shadow-2xl backdrop-blur-sm transition-all duration-300',
-        minimized ? 'h-16 w-96' : 'h-[700px] w-[480px]'
+        'fixed bottom-8 right-8 z-50 flex flex-col rounded-3xl shadow-2xl backdrop-blur-sm transition-all duration-300',
+        minimized ? 'h-16 w-96' : 'h-175 w-120'
       )}
+      style={{
+        background: 'linear-gradient(135deg, #fdf5f3 0%, #f9ede9 60%, #f4e6e1 100%)',
+        border: `2px solid ${C3}`,
+      }}
       role="dialog"
       aria-label="Bloom AI Support Chat"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3 rounded-t-3xl bg-gradient-to-r from-blue-500 via-blue-300 to-pink-200 px-6 py-4 shadow-lg">
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <div
+        className="flex items-center justify-between gap-3 rounded-t-3xl px-6 py-4 shadow-sm"
+        style={{ background: CTA }}
+      >
         <div className="flex items-center gap-3">
           <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm ring-2 ring-white/30">
-            <Heart className="h-6 w-6 text-white animate-pulse" fill="currentColor" />
+            <Heart className="h-6 w-6 text-white" fill="currentColor" />
             <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-400 ring-2 ring-white" />
           </div>
           <div>
@@ -100,7 +109,7 @@ export function ChatbotWidget() {
               <CheckCircle2 className="h-4 w-4" />
             </p>
             <p className="mt-1 text-sm text-white/90 font-medium">
-              {chatLoading ? 'Thinking...' : 'Always here to help ✨'}
+              {chatLoading ? 'Thinking…' : 'Always here to help ✨'}
             </p>
           </div>
         </div>
@@ -124,14 +133,17 @@ export function ChatbotWidget() {
 
       {!minimized && (
         <>
-          {/* Disclaimer */}
-          <div className="border-b-2 border-pink-100 dark:border-pink-900/50 bg-gradient-to-r from-pink-50/50 to-purple-50/50 dark:from-pink-950/20 dark:to-purple-950/20 px-5 py-3">
+          {/* ── Disclaimer ─────────────────────────────────────────────── */}
+          <div
+            className="border-b px-5 py-3"
+            style={{ borderColor: `${C3}80`, background: `${C3}20` }}
+          >
             <p className="text-xs text-muted-foreground leading-relaxed font-medium">
               💡 General information only — not medical advice. Always consult your healthcare provider.
             </p>
           </div>
 
-          {/* Messages */}
+          {/* ── Messages ───────────────────────────────────────────────── */}
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 scroll-smooth">
             {chatMessages.map((message) => (
               <div
@@ -142,8 +154,8 @@ export function ChatbotWidget() {
                 )}
               >
                 {message.isAi && (
-                  <Avatar className="h-9 w-9 shrink-0 mt-1 ring-2 ring-pink-200 dark:ring-pink-800">
-                    <AvatarFallback className="bg-gradient-to-br from-pink-200 to-blue-300 text-white">
+                  <Avatar className="h-9 w-9 shrink-0 mt-1" style={{ ['--tw-ring-color' as string]: C3 }}>
+                    <AvatarFallback className="text-white" style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}>
                       <Heart className="h-4 w-4" fill="currentColor" />
                     </AvatarFallback>
                   </Avatar>
@@ -151,14 +163,19 @@ export function ChatbotWidget() {
                 <div className="flex flex-col gap-2 max-w-[85%]">
                   <div
                     className={cn(
-                      'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-md',
+                      'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
                       message.isAi
-                        ? 'rounded-tl-sm bg-gradient-to-br from-white to-pink-50/50 dark:from-gray-800 dark:to-gray-850 text-foreground border border-pink-100 dark:border-pink-900/30'
-                        : 'rounded-tr-sm bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-pink-500/30'
+                        ? 'rounded-tl-sm text-foreground'
+                        : 'rounded-tr-sm text-white'
                     )}
+                    style={
+                      message.isAi
+                        ? { background: 'rgba(255,255,255,0.85)', border: `1px solid ${C3}60` }
+                        : { background: CTA, boxShadow: '0 3px 12px rgba(160,80,70,0.3)' }
+                    }
                   >
                     {message.isAi ? (
-                      <div className="prose prose-pink prose-sm max-w-none dark:prose-invert [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>li]:my-0 [&>h1]:mt-2 [&>h2]:mt-2 [&>h3]:mt-2 [&>code]:text-pink-700 [&>pre]:bg-gray-100 dark:[&>pre]:bg-gray-800 [&>a]:text-pink-500">
+                      <div className="prose prose-sm max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>li]:my-0 [&>h1]:mt-2 [&>h2]:mt-2 [&>h3]:mt-2">
                         <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                           {message.content}
                         </ReactMarkdown>
@@ -167,7 +184,7 @@ export function ChatbotWidget() {
                       message.content
                     )}
                   </div>
-                  
+
                   {/* Confidence & Feedback */}
                   {message.isAi && message.id !== 'msg-welcome' && (
                     <div className="flex items-center gap-3 px-2">
@@ -177,12 +194,12 @@ export function ChatbotWidget() {
                             {[...Array(3)].map((_, i) => (
                               <div
                                 key={i}
-                                className={cn(
-                                  'h-1.5 w-1.5 rounded-full',
-                                  i < Math.floor((message.confidence || 0) / 33)
-                                    ? 'bg-green-500'
-                                    : 'bg-gray-300 dark:bg-gray-700'
-                                )}
+                                className="h-1.5 w-1.5 rounded-full"
+                                style={{
+                                  background: i < Math.floor((message.confidence || 0) / 33)
+                                    ? '#22c55e'
+                                    : '#d1d5db',
+                                }}
                               />
                             ))}
                           </div>
@@ -198,14 +215,14 @@ export function ChatbotWidget() {
                         <div className="flex items-center gap-1 ml-auto">
                           <button
                             onClick={() => handleFeedback(message.id, true)}
-                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-950"
+                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-green-100 hover:text-green-600"
                             aria-label="Helpful"
                           >
                             <ThumbsUp className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleFeedback(message.id, false)}
-                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950"
+                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-100 hover:text-red-600"
                             aria-label="Not helpful"
                           >
                             <ThumbsDown className="h-3.5 w-3.5" />
@@ -213,7 +230,7 @@ export function ChatbotWidget() {
                         </div>
                       )}
                       {feedbackGiven[message.id] && (
-                        <div className="text-xs text-green-600 dark:text-green-400 font-medium ml-auto">
+                        <div className="text-xs text-green-600 font-medium ml-auto">
                           Thanks for your feedback! 💚
                         </div>
                       )}
@@ -223,27 +240,34 @@ export function ChatbotWidget() {
               </div>
             ))}
 
+            {/* Typing indicator */}
             {chatLoading && (
               <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2">
-                <Avatar className="h-9 w-9 shrink-0 mt-1 ring-2 ring-pink-200 dark:ring-pink-800">
-                  <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+                <Avatar className="h-9 w-9 shrink-0 mt-1">
+                  <AvatarFallback className="text-white" style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}>
                     <Heart className="h-4 w-4" fill="currentColor" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-gradient-to-br from-white to-pink-50/50 dark:from-gray-800 dark:to-gray-850 border border-pink-100 dark:border-pink-900/30 px-5 py-4 shadow-md">
-                  <span className="h-2 w-2 rounded-full bg-pink-500 animate-bounce [animation-delay:0ms]" />
-                  <span className="h-2 w-2 rounded-full bg-rose-500 animate-bounce [animation-delay:150ms]" />
-                  <span className="h-2 w-2 rounded-full bg-purple-500 animate-bounce [animation-delay:300ms]" />
+                <div
+                  className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm"
+                  style={{ background: 'rgba(255,255,255,0.85)', border: `1px solid ${C3}60` }}
+                >
+                  <span className="h-2 w-2 rounded-full animate-bounce [animation-delay:0ms]" style={{ background: C2 }} />
+                  <span className="h-2 w-2 rounded-full animate-bounce [animation-delay:150ms]" style={{ background: C2 }} />
+                  <span className="h-2 w-2 rounded-full animate-bounce [animation-delay:300ms]" style={{ background: '#CAA69B' }} />
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick prompts — only show if 1 message (just the greeting) */}
+          {/* ── Quick prompts (greeting-only state) ────────────────────── */}
           {chatMessages.length === 1 && (
-            <div className="border-t-2 border-pink-100 dark:border-pink-900/50 px-5 py-4 bg-gradient-to-r from-pink-50/30 to-purple-50/30 dark:from-pink-950/10 dark:to-purple-950/10">
-              <p className="mb-3 text-xs font-bold text-muted-foreground uppercase tracking-wide">
+            <div
+              className="border-t px-5 py-4"
+              style={{ borderColor: `${C3}80`, background: `${C3}15` }}
+            >
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide" style={{ color: C2 }}>
                 ✨ Popular questions
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -251,7 +275,8 @@ export function ChatbotWidget() {
                   <button
                     key={prompt}
                     onClick={() => handleQuickPrompt(prompt)}
-                    className="rounded-xl border-2 border-pink-200 dark:border-pink-900/50 bg-white dark:bg-gray-900 px-3 py-2.5 text-left text-xs font-medium text-foreground transition-all hover:border-pink-400 hover:bg-gradient-to-br hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-950/30 dark:hover:to-purple-950/30 hover:shadow-md disabled:opacity-50"
+                    className="rounded-xl border bg-white/80 px-3 py-2.5 text-left text-xs font-medium text-foreground transition-all hover:bg-white hover:shadow-md disabled:opacity-50"
+                    style={{ borderColor: `${C3}90` }}
                     disabled={chatLoading}
                   >
                     {prompt}
@@ -261,33 +286,37 @@ export function ChatbotWidget() {
             </div>
           )}
 
-          {/* Input */}
+          {/* ── Login prompt ───────────────────────────────────────────── */}
           {showLoginPrompt && (
-            <div className="mb-3 rounded-lg border border-pink-200 bg-pink-50/60 p-3 text-center">
-              <p className="text-sm font-medium">Please sign in to use Bloom chat.</p>
+            <div
+              className="mx-4 mb-3 rounded-xl border p-3 text-center"
+              style={{ borderColor: `${C3}80`, background: `${C3}20` }}
+            >
+              <p className="text-sm font-medium text-foreground">Please sign in to use Bloom chat.</p>
               <div className="mt-2 flex items-center justify-center gap-2">
                 <Button
                   onClick={() => router.push('/auth')}
-                  className="rounded-md bg-pink-500 text-white px-3 py-1.5"
+                  className="rounded-lg px-3 py-1.5 text-sm text-white"
+                  style={{ background: CTA }}
                 >
                   Log in / Sign up
                 </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowLoginPrompt(false)}
-                  className="rounded-md px-3 py-1.5"
-                >
+                <Button variant="ghost" onClick={() => setShowLoginPrompt(false)} className="rounded-lg px-3 py-1.5 text-sm">
                   Cancel
                 </Button>
               </div>
             </div>
           )}
 
-          <div className="border-t-2 border-pink-100 dark:border-pink-900/50 p-4 bg-white/50 dark:bg-gray-950/50 rounded-b-3xl">
+          {/* ── Input bar ──────────────────────────────────────────────── */}
+          <div
+            className="border-t p-4 rounded-b-3xl"
+            style={{ borderColor: `${C3}80`, background: 'rgba(255,255,255,0.6)' }}
+          >
             <div className="flex items-end gap-3">
               <Textarea
                 ref={textareaRef}
-                placeholder="Ask anything about pregnancy, parenting, or health..."
+                placeholder="Ask anything about pregnancy, parenting, or health…"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => {
@@ -296,7 +325,8 @@ export function ChatbotWidget() {
                     handleSend();
                   }
                 }}
-                className="min-h-[48px] max-h-32 resize-none rounded-xl border-2 border-pink-200 dark:border-pink-900/50 text-sm leading-relaxed focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20"
+                className="min-h-12 max-h-32 resize-none rounded-xl border-2 text-sm leading-relaxed focus:ring-2"
+                style={{ borderColor: C3, ['--tw-ring-color' as string]: `${C2}40` }}
                 disabled={chatLoading}
                 rows={1}
               />
@@ -304,7 +334,8 @@ export function ChatbotWidget() {
                 size="icon"
                 onClick={handleSend}
                 disabled={!inputValue.trim() || chatLoading}
-                className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg hover:shadow-pink-500/50 transition-all duration-200"
+                className="h-12 w-12 shrink-0 rounded-xl text-white shadow-lg transition-all duration-200 hover:brightness-110"
+                style={{ background: CTA, boxShadow: '0 4px 14px rgba(160,80,70,0.4)' }}
                 aria-label="Send message"
               >
                 <Send className="h-5 w-5" />
@@ -316,3 +347,5 @@ export function ChatbotWidget() {
     </div>
   );
 }
+
+

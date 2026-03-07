@@ -74,9 +74,9 @@ export default function AuthPage() {
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: "url('/image copy.png')",
+          backgroundImage: "url('/image copy 9.png')",
           backgroundSize: 'cover',
-          backgroundPosition: 'center 60%',
+          backgroundPosition: 'center 30%',
           backgroundRepeat: 'no-repeat',
         }}
       />
