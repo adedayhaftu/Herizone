@@ -1,0 +1,259 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String   @unique
+  name           String?
+  profilePicture String?  @map("profile_picture")
+  bio            String?
+  googleId       String?  @unique @map("google_id")
+  passwordHash   String?  @map("password_hash")
+  isExpert       Boolean  @default(false) @map("is_expert")
+  isAdmin        Boolean  @default(false) @map("is_admin")
+  isBanned       Boolean  @default(false) @map("is_banned")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  children       UserChild[]
+  pregnancyInfo  PregnancyInfo[]
+  posts          Post[]
+  comments       Comment[]
+  likes          Like[]
+  bookmarks      Bookmark[]
+  questions      Question[]
+  answers        Answer[]
+  chatMessages   ChatMessage[]
+  chatFeedback   ChatFeedback[]
+  reports        Report[]
+  articles       Article[]
+
+  @@map("users")
+}
+
+model UserChild {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String?
+  birthDate DateTime? @map("birth_date") @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_children")
+}
+
+model PregnancyInfo {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  dueDate   DateTime? @map("due_date") @db.Date
+  trimester Int?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("pregnancy_info")
+}
+
+model Post {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  content      String
+  category     PostCategory
+  isAnonymous  Boolean  @default(false) @map("is_anonymous")
+  likeCount    Int      @default(0) @map("like_count")
+  commentCount Int      @default(0) @map("comment_count")
+  isReported   Boolean  @default(false) @map("is_reported")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+  reports  Report[]
+
+  @@map("posts")
+}
+
+enum PostCategory {
+  pregnancy
+  parenting
+  health
+  general
+
+  @@map("post_category")
+}
+
+model Comment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId     String   @map("post_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  content    String
+  isReported Boolean  @default(false) @map("is_reported")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  post    Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports Report[]
+
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("likes")
+}
+
+model Article {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String
+  content   String
+  category  ArticleCategory
+  tags      String[]
+  authorId  String?  @map("author_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  author    User?      @relation(fields: [authorId], references: [id])
+  bookmarks Bookmark[]
+
+  @@map("articles")
+}
+
+enum ArticleCategory {
+  pregnancy
+  parenting
+  health
+  nutrition
+
+  @@map("article_category")
+}
+
+model Bookmark {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  articleId String   @map("article_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@map("bookmarks")
+}
+
+model Question {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  question  String
+  topic     QuestionTopic
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@map("questions")
+}
+
+enum QuestionTopic {
+  medical
+  mental_health
+  nutrition
+  parenting
+
+  @@map("question_topic")
+}
+
+model Answer {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  expertId   String   @map("expert_id") @db.Uuid
+  answer     String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  expert   User     @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@map("answers")
+}
+
+model ChatMessage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  message   String
+  isAi      Boolean  @default(false) @map("is_ai")
+  sourceIds String[] @map("source_ids") // knowledge base ids used
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback ChatFeedback[]
+
+  @@map("chat_messages")
+}
+
+model ChatFeedback {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId String   @map("message_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  isHelpful Boolean  @map("is_helpful")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_feedback")
+}
+
+model KnowledgeBase {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question        String
+  answer          String
+  sourceType      String   @map("source_type") // 'community_post', 'expert_answer', 'article'
+  sourceId        String?  @map("source_id") @db.Uuid
+  confidenceScore Int      @default(1) @map("confidence_score")
+  timesReferenced Int      @default(0) @map("times_referenced")
+  isVerified      Boolean  @default(false) @map("is_verified")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("knowledge_base")
+}
+
+model Report {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  postId    String?      @map("post_id") @db.Uuid
+  commentId String?      @map("comment_id") @db.Uuid
+  reason    String?
+  status    ReportStatus @default(pending)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: SetNull)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+
+  @@map("reports")
+}
+
+enum ReportStatus {
+  pending
+  resolved
+  dismissed
+
+  @@map("report_status")
+}
