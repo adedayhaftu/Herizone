@@ -9,6 +9,7 @@ import {
     type ApiArticle,
     type ApiChatMessage,
     type ApiComment,
+    type ApiExpert,
     type ApiExpertApplication,
     type ApiPost,
     type ApiQuestion,
@@ -77,12 +78,28 @@ export interface ExpertApplication {
   bio: string;
   credentials: string;
   specialty: string;
+  yearsOfExperience: number;
+  licenseNumber: string | null;
+  priceMin: number;
+  priceMax: number;
+  agreeToTerms: boolean;
   status: 'pending' | 'approved' | 'rejected';
   reviewNote: string | null;
   createdAt: Date;
   userName?: string;
   userEmail?: string;
   userAvatar?: string;
+}
+
+export interface Expert {
+  id: string;
+  name: string;
+  avatar: string;
+  bio: string;
+  specialty: string;
+  yearsOfExperience: number;
+  priceMin: number;
+  priceMax: number;
 }
 
 export interface Question {
@@ -219,12 +236,30 @@ function mapExpertApplication(a: ApiExpertApplication): ExpertApplication {
     bio: a.bio,
     credentials: a.credentials,
     specialty: a.specialty,
+    yearsOfExperience: a.yearsOfExperience,
+    licenseNumber: a.licenseNumber,
+    priceMin: a.priceMin,
+    priceMax: a.priceMax,
+    agreeToTerms: a.agreeToTerms,
     status: a.status,
     reviewNote: a.reviewNote,
     createdAt: new Date(a.createdAt),
     userName: a.user?.name ?? undefined,
     userEmail: a.user?.email,
     userAvatar: a.user?.profilePicture ?? undefined,
+  };
+}
+
+function mapExpert(e: ApiExpert): Expert {
+  return {
+    id: e.id,
+    name: e.name ?? 'Expert',
+    avatar: e.profilePicture ?? '/placeholder-user.jpg',
+    bio: e.bio ?? '',
+    specialty: e.specialty ?? '',
+    yearsOfExperience: e.yearsOfExperience ?? 0,
+    priceMin: e.priceMin ?? 0,
+    priceMax: e.priceMax ?? 0,
   };
 }
 
@@ -284,11 +319,14 @@ interface AppStore {
   pendingArticlesLoading: boolean;
   myExpertApplication: ExpertApplication | null;
   expertApplications: ExpertApplication[];
+  experts: Expert[];
+  expertsLoading: boolean;
   fetchArticles: () => Promise<void>;
   fetchMyArticles: () => Promise<void>;
   fetchPendingArticles: () => Promise<void>;
   fetchExpertApplications: () => Promise<void>;
   fetchMyApplication: () => Promise<void>;
+  fetchExperts: () => Promise<void>;
   setArticleFilter: (filter: ArticleCategory | 'all') => void;
   setArticleSearch: (search: string) => void;
   selectArticle: (article: Article | null) => void;
@@ -299,7 +337,16 @@ interface AppStore {
   publishArticle: (id: string) => Promise<void>;
   rejectArticle: (id: string) => Promise<void>;
   deleteArticle: (id: string) => Promise<void>;
-  applyAsExpert: (data: { bio: string; credentials: string; specialty: string }) => Promise<void>;
+  applyAsExpert: (data: {
+    bio: string;
+    credentials: string;
+    specialty: string;
+    yearsOfExperience: number;
+    licenseNumber?: string;
+    priceMin: number;
+    priceMax: number;
+    agreeToTerms: boolean;
+  }) => Promise<void>;
   approveExpertApplication: (id: string) => Promise<void>;
   rejectExpertApplication: (id: string, reviewNote?: string) => Promise<void>;
 
@@ -508,6 +555,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   pendingArticlesLoading: false,
   myExpertApplication: null,
   expertApplications: [],
+  experts: [],
+  expertsLoading: false,
 
   fetchArticles: async () => {
     set({ articlesLoading: true });
@@ -564,6 +613,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
       set({ myExpertApplication: application ? mapExpertApplication(application) : null });
     } catch (err) {
       console.error('fetchMyApplication error', err);
+    }
+  },
+
+  fetchExperts: async () => {
+    set({ expertsLoading: true });
+    try {
+      const { experts } = await expertApplicationsApi.getExperts();
+      set({ experts: experts.map(mapExpert) });
+    } catch (err) {
+      console.error('fetchExperts error', err);
+    } finally {
+      set({ expertsLoading: false });
     }
   },
 

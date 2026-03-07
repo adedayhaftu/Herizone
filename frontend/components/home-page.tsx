@@ -2,14 +2,14 @@
 
 import { useAppStore, type View } from '@/lib/store';
 import {
-  ArrowRight,
-  BookOpen,
-  Heart,
-  MessageSquare,
-  Shield,
-  Sparkles,
-  Stethoscope,
-  Users,
+    ArrowRight,
+    BookOpen,
+    Heart,
+    MessageSquare,
+    Shield,
+    Sparkles,
+    Stethoscope,
+    Users,
 } from 'lucide-react';
 
 // ── Brand palette ─────────────────────────────────────────────────────────────

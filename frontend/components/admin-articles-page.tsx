@@ -5,23 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAppStore, type Article, type ArticleCategory, type ExpertApplication } from '@/lib/store';
 import {
-  AlertTriangle,
-  Baby,
-  BookOpen,
-  Check,
-  ChevronLeft,
-  Edit,
-  HeartPulse,
-  Loader2,
-  Plus,
-  Save,
-  Search,
-  Stethoscope,
-  Tag,
-  Trash2,
-  User,
-  X,
-  XCircle,
+    AlertTriangle,
+    Baby,
+    BookOpen,
+    Check,
+    ChevronLeft,
+    Edit,
+    HeartPulse,
+    Loader2,
+    Plus,
+    Save,
+    Search,
+    Stethoscope,
+    Tag,
+    Trash2,
+    User,
+    X,
+    XCircle,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -164,7 +164,14 @@ function ApplicationCard({
           <p className="text-xs text-muted-foreground mt-0.5"><strong>Specialty:</strong> {app.specialty}</p>
         </div>
       </div>
-      <div className="text-xs text-muted-foreground space-y-1 bg-muted/40 rounded-lg p-3">
+      <div className="text-xs text-muted-foreground space-y-1.5 bg-muted/40 rounded-lg p-3">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+          <p><strong className="text-foreground">Experience:</strong> {app.yearsOfExperience} yrs</p>
+          <p><strong className="text-foreground">Rate:</strong> ${app.priceMin} – ${app.priceMax}/hr</p>
+          {app.licenseNumber && (
+            <p className="col-span-2"><strong className="text-foreground">License:</strong> {app.licenseNumber}</p>
+          )}
+        </div>
         <p><strong className="text-foreground">Credentials:</strong> {app.credentials}</p>
         <p><strong className="text-foreground">Bio:</strong> {app.bio}</p>
       </div>

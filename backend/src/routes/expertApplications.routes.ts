@@ -1,16 +1,18 @@
 import { Router } from 'express';
 import {
-  approveApplication,
   applyAsExpert,
   applyValidators,
+  approveApplication,
   getApplications,
+  getExperts,
   getMyApplication,
   rejectApplication,
 } from '../controllers/expertApplications.controller';
-import { authenticate, requireAdmin } from '../middleware/auth';
+import { authenticate, optionalAuth, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
+router.get('/experts', optionalAuth, getExperts);       // public — list approved experts
 router.post('/', authenticate, applyValidators, applyAsExpert);
 router.get('/me', authenticate, getMyApplication);
 router.get('/', authenticate, requireAdmin, getApplications);

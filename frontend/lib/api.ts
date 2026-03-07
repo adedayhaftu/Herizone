@@ -220,14 +220,39 @@ export interface ApiExpertApplication {
   bio: string;
   credentials: string;
   specialty: string;
+  yearsOfExperience: number;
+  licenseNumber: string | null;
+  priceMin: number;
+  priceMax: number;
+  agreeToTerms: boolean;
   status: 'pending' | 'approved' | 'rejected';
   reviewNote: string | null;
   createdAt: string;
   user?: { id: string; name: string | null; email: string; profilePicture: string | null };
 }
 
+export interface ApiExpert {
+  id: string;
+  name: string | null;
+  profilePicture: string | null;
+  bio: string | null;
+  specialty: string | null;
+  yearsOfExperience: number | null;
+  priceMin: number | null;
+  priceMax: number | null;
+}
+
 export const expertApplicationsApi = {
-  apply: (data: { bio: string; credentials: string; specialty: string }) =>
+  apply: (data: {
+    bio: string;
+    credentials: string;
+    specialty: string;
+    yearsOfExperience: number;
+    licenseNumber?: string;
+    priceMin: number;
+    priceMax: number;
+    agreeToTerms: boolean;
+  }) =>
     api.post<{ application: ApiExpertApplication }>('/api/expert-applications', data),
   getMyApplication: () =>
     api.get<{ application: ApiExpertApplication | null }>('/api/expert-applications/me'),
@@ -237,6 +262,8 @@ export const expertApplicationsApi = {
     api.patch<{ message: string }>(`/api/expert-applications/${id}/approve`, {}),
   reject: (id: string, reviewNote?: string) =>
     api.patch<{ message: string }>(`/api/expert-applications/${id}/reject`, { reviewNote }),
+  getExperts: () =>
+    guestRequest<{ experts: ApiExpert[] }>('/api/expert-applications/experts'),
 };
 
 // ── Expert Q&A ────────────────────────────────────────────────────────────────

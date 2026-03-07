@@ -1,17 +1,17 @@
 import { Router } from 'express';
 import {
-  bookmarkArticle,
-  createArticle,
-  createArticleValidators,
-  deleteArticle,
-  getArticle,
-  getArticles,
-  getPendingArticles,
-  publishArticle,
-  rejectArticle,
-  removeBookmark,
-  updateArticle,
-  updateArticleValidators,
+    bookmarkArticle,
+    createArticle,
+    createArticleValidators,
+    deleteArticle,
+    getArticle,
+    getArticles,
+    getPendingArticles,
+    publishArticle,
+    rejectArticle,
+    removeBookmark,
+    updateArticle,
+    updateArticleValidators,
 } from '../controllers/articles.controller';
 import { authenticate, optionalAuth, requireAdmin, requireExpert } from '../middleware/auth';
 

@@ -21,6 +21,10 @@ model User {
   isExpert       Boolean  @default(false) @map("is_expert")
   isAdmin        Boolean  @default(false) @map("is_admin")
   isBanned       Boolean  @default(false) @map("is_banned")
+  specialty      String?
+  yearsOfExperience Int?  @map("years_of_experience")
+  priceMin       Int?     @map("price_min")
+  priceMax       Int?     @map("price_max")
   createdAt      DateTime @default(now()) @map("created_at")
 
   children       UserChild[]
@@ -147,15 +151,20 @@ enum ArticleStatus {
 }
 
 model ExpertApplication {
-  id          String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String                  @map("user_id") @db.Uuid
-  bio         String
-  credentials String
-  specialty   String
-  status      ExpertApplicationStatus @default(pending)
-  reviewNote  String?                 @map("review_note")
-  createdAt   DateTime                @default(now()) @map("created_at")
-  updatedAt   DateTime                @updatedAt @map("updated_at")
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String                  @map("user_id") @db.Uuid
+  bio               String
+  credentials       String
+  specialty         String
+  yearsOfExperience Int                     @map("years_of_experience")
+  licenseNumber     String?                 @map("license_number")
+  priceMin          Int                     @map("price_min")
+  priceMax          Int                     @map("price_max")
+  agreeToTerms      Boolean                 @default(false) @map("agree_to_terms")
+  status            ExpertApplicationStatus @default(pending)
+  reviewNote        String?                 @map("review_note")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
