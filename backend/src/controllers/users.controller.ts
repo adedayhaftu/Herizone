@@ -22,17 +22,62 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   res.json({ user });
 };
 
+// GET /api/users/:id
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      profilePicture: true,
+      bio: true,
+      isExpert: true,
+      specialty: true,
+      yearsOfExperience: true,
+      priceMin: true,
+      priceMax: true,
+      availableHours: true,
+      reviews: true,
+      reviewCount: true,
+      createdAt: true,
+      _count: {
+        select: {
+          posts: true,
+          questions: true,
+          answers: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  res.json({ user });
+};
+
 // PATCH /api/users/me
 export const updateMe = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { name, bio, profilePicture } = req.body;
+  const { name, bio, profilePicture, availableHours, priceMin, priceMax } = req.body;
+
+  const data: any = {};
+  if (name !== undefined) data.name = name;
+  if (bio !== undefined) data.bio = bio;
+  if (profilePicture !== undefined) data.profilePicture = profilePicture;
+  
+  // Experts can update these
+  if (req.user!.isExpert) {
+    if (availableHours !== undefined) data.availableHours = availableHours;
+    if (priceMin !== undefined) data.priceMin = Number(priceMin);
+    if (priceMax !== undefined) data.priceMax = Number(priceMax);
+  }
 
   const user = await prisma.user.update({
     where: { id: req.user!.id },
-    data: {
-      ...(name !== undefined && { name }),
-      ...(bio !== undefined && { bio }),
-      ...(profilePicture !== undefined && { profilePicture }),
-    },
+    data,
     select: {
       id: true,
       email: true,
@@ -41,6 +86,9 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
       profilePicture: true,
       isAdmin: true,
       isExpert: true,
+      availableHours: true,
+      priceMin: true,
+      priceMax: true,
     },
   });
 

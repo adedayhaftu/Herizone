@@ -34,9 +34,20 @@ export const getQuestions = async (req: AuthRequest, res: Response): Promise<voi
 // POST /api/questions
 export const createQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
   const { question, topic } = req.body;
+  const user = req.user!;
+
+  // Check if user is premium - only premium users can ask expert questions
+  if (!user.isPremium) {
+    res.status(403).json({
+      error: 'Premium subscription required',
+      message: 'Asking expert questions is a premium feature. Upgrade to Premium to get personalized answers from verified experts!',
+      premiumRequired: true,
+    });
+    return;
+  }
 
   const q = await prisma.question.create({
-    data: { userId: req.user!.id, question, topic },
+    data: { userId: user.id, question, topic },
     include: { user: { select: { id: true, name: true, profilePicture: true } } },
   });
 

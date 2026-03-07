@@ -39,6 +39,7 @@ export default function JoinAsExpertPage() {
     priceMax: '',
     credentials: '',
     bio: '',
+    availableHours: '',
     agreeToTerms: false,
     agreeAccuracy: false,
   });
@@ -56,9 +57,17 @@ export default function JoinAsExpertPage() {
         <div className="rounded-full bg-amber-100 p-5 mb-4">
           <Stethoscope className="h-10 w-10 text-amber-500" />
         </div>
-        <h2 className="text-lg font-semibold text-gray-800">Sign in to Apply</h2>
-        <p className="mt-2 text-sm text-gray-500">Please log in to submit your expert application.</p>
-        <a href="/" className="mt-5 flex items-center gap-1.5 text-sm font-medium" style={{ color: C2 }}>
+        <h2 className="text-lg font-semibold text-gray-800">Become an Expert</h2>
+        <p className="mt-2 text-sm text-gray-500">Please create an account or sign in to start your application.</p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <a href="/auth?mode=register" className="flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-transform hover:scale-105" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+            Create Account
+            </a>
+            <a href="/auth?mode=login" className="flex items-center justify-center gap-2 rounded-full border bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
+            Sign In
+            </a>
+        </div>
+        <a href="/" className="mt-8 flex items-center gap-1.5 text-sm font-medium" style={{ color: C2 }}>
           <ArrowLeft className="h-4 w-4" /> Back to Home
         </a>
       </div>
@@ -154,6 +163,7 @@ export default function JoinAsExpertPage() {
       if (!form.priceMax || isNaN(Number(form.priceMax))) return 'Please enter maximum price.';
       if (Number(form.priceMin) > Number(form.priceMax))
         return 'Minimum price cannot exceed maximum price.';
+      if (!form.availableHours.trim()) return 'Please enter your available hours.';
     }
     if (step === 2) {
       if (!form.credentials.trim()) return 'Please list your credentials.';
@@ -187,6 +197,7 @@ export default function JoinAsExpertPage() {
         licenseNumber: form.licenseNumber.trim() || undefined,
         priceMin: Number(form.priceMin),
         priceMax: Number(form.priceMax),
+        availableHours: form.availableHours.trim(),
         credentials: form.credentials.trim(),
         bio: form.bio.trim(),
         agreeToTerms: true,
@@ -314,7 +325,11 @@ export default function JoinAsExpertPage() {
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-400">Your price range is displayed publicly on your expert profile and can be updated later.</p>
+              <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">Available Hours *</label>
+                  <Input placeholder="e.g. Mon-Fri 9am-5pm EST, Weekends by appointment" className="h-11" {...field('availableHours')} />
+              </div>
+              <p className="text-xs text-gray-400">Your price range and availability are displayed publicly on your expert profile.</p>
             </div>
           )}
 

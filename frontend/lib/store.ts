@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import {
-  articlesApi,
-  chatApi,
-  expertApplicationsApi,
-  postsApi,
-  questionsApi,
-  type ApiAnswer,
-  type ApiArticle,
-  type ApiChatMessage,
-  type ApiComment,
-  type ApiExpert,
-  type ApiExpertApplication,
-  type ApiPost,
-  type ApiQuestion,
-  type AuthUser,
+    articlesApi,
+    chatApi,
+    expertApplicationsApi,
+    postsApi,
+    questionsApi,
+    type ApiAnswer,
+    type ApiArticle,
+    type ApiChatMessage,
+    type ApiComment,
+    type ApiExpert,
+    type ApiExpertApplication,
+    type ApiPost,
+    type ApiQuestion,
+    type AuthUser,
 } from './api';
 import { login as authLogin, register as authRegister, signOut as authSignOut, restoreSession } from './auth';
 
@@ -31,6 +31,9 @@ export interface User {
   bio: string;
   isExpert: boolean;
   isAdmin: boolean;
+  isPremium: boolean;
+  aiQuestionsCount: number;
+  aiQuestionsLimit: number;
   bookmarks: string[];
 }
 
@@ -100,6 +103,7 @@ export interface Expert {
   yearsOfExperience: number;
   priceMin: number;
   priceMax: number;
+  availableHours?: string;
 }
 
 export interface Question {
@@ -225,6 +229,9 @@ function mapAuthUser(u: AuthUser): User {
     bio: u.bio ?? '',
     isExpert: u.isExpert,
     isAdmin: u.isAdmin,
+    isPremium: u.isPremium,
+    aiQuestionsCount: u.aiQuestionsCount,
+    aiQuestionsLimit: u.aiQuestionsLimit,
     bookmarks: [],
   };
 }
@@ -250,7 +257,7 @@ function mapExpertApplication(a: ApiExpertApplication): ExpertApplication {
   };
 }
 
-function mapExpert(e: ApiExpert): Expert {
+function mapExpert(e: ApiExpert & { availableHours?: string | null }): Expert {
   return {
     id: e.id,
     name: e.name ?? 'Expert',
@@ -260,6 +267,7 @@ function mapExpert(e: ApiExpert): Expert {
     yearsOfExperience: e.yearsOfExperience ?? 0,
     priceMin: e.priceMin ?? 0,
     priceMax: e.priceMax ?? 0,
+    availableHours: e.availableHours ?? undefined,
   };
 }
 
@@ -345,6 +353,7 @@ interface AppStore {
     licenseNumber?: string;
     priceMin: number;
     priceMax: number;
+    availableHours: string;
     agreeToTerms: boolean;
   }) => Promise<void>;
   approveExpertApplication: (id: string) => Promise<void>;
@@ -819,11 +828,29 @@ export const useAppStore = create<AppStore>((set, get) => ({
     };
     set((s) => ({ chatMessages: [...s.chatMessages, userMsg], chatLoading: true }));
     try {
-      const { message } = await chatApi.sendMessage(content);
+      const { message, questionsRemaining } = await chatApi.sendMessage(content);
       set((s) => ({
         chatMessages: [...s.chatMessages, mapChatMessage(message)],
       }));
-    } catch {
+      
+      // Update user's remaining questions count
+      if (questionsRemaining !== undefined && questionsRemaining !== null) {
+        set((s) => ({
+          currentUser: s.currentUser
+            ? { ...s.currentUser, aiQuestionsCount: s.currentUser.aiQuestionsLimit - questionsRemaining }
+            : null,
+        }));
+      }
+    } catch (err: any) {
+      // Check if it's a limit error
+      if (err?.response?.data?.limitReached) {
+        // Remove the user message since it wasn't processed
+        set((s) => ({
+          chatMessages: s.chatMessages.filter((m) => m.id !== userMsg.id),
+        }));
+        throw err; // Re-throw to be caught by the component
+      }
+      
       const errMsg: ChatMessage = {
         id: `msg-err-${Date.now()}`,
         content: "I'm sorry, I couldn't reach the server right now. Please try again in a moment.",

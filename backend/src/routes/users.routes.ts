@@ -5,12 +5,16 @@ import {
     addPregnancy,
     addPregnancyValidators,
     getMe,
+    getProfile,
     updateMe,
     updateMeValidators,
 } from '../controllers/users.controller';
 import { authenticate } from '../middleware/auth';
 
 const router = Router();
+
+// Public profile route (optional authentication for checking follow status etc. if added later)
+router.get('/:id', getProfile);
 
 router.use(authenticate);
 

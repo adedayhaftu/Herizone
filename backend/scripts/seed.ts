@@ -3,7 +3,7 @@
  * Usage:  npx ts-node scripts/seed.ts
  *
  * Creates (in order):
- *   - 1 admin + 5 regular users + 5 expert users
+ *   - 1 admin + 3 premium users + 4 freemium users + 5 expert users
  *   - 5 articles (published, various categories)
  *   - 5 community posts (various categories)
  *   - 5 comments across posts
@@ -12,7 +12,7 @@
  *   - 5 knowledge-base entries (verified)
  *   - Bookmarks, likes, pregnancy/child info, expert applications
  *
- * Safe to re-run — uses upsert / findFirst guards where possible.
+ * Safe to re-run — clears database first for clean testing.
  */
 
 import { ArticleCategory, PostCategory, PrismaClient, QuestionTopic } from '@prisma/client';
@@ -29,24 +29,81 @@ const log  = (msg: string) => console.log(`  ${msg}`);
 
 async function main() {
   console.log('\n🌱  Seeding Herizone database…\n');
+  
+  // ── CLEAR DATABASE ────────────────────────────────────────────────────────
+  console.log('🗑️  Clearing existing data...');
+  await prisma.chatFeedback.deleteMany({});
+  await prisma.chatMessage.deleteMany({});
+  await prisma.answer.deleteMany({});
+  await prisma.question.deleteMany({});
+  await prisma.knowledgeBase.deleteMany({});
+  await prisma.report.deleteMany({});
+  await prisma.like.deleteMany({});
+  await prisma.comment.deleteMany({});
+  await prisma.post.deleteMany({});
+  await prisma.bookmark.deleteMany({});
+  await prisma.article.deleteMany({});
+  await prisma.expertApplication.deleteMany({});
+  await prisma.pregnancyInfo.deleteMany({});
+  await prisma.userChild.deleteMany({});
+  await prisma.user.deleteMany({});
+  log('✅ Database cleared');
 
   // ── 1. ADMIN ──────────────────────────────────────────────────────────────
-  console.log('👤  Users & Experts');
+  console.log('\n👤  Users & Experts');
   const adminPw = await hash('Admin@Herizone2026!');
-  const admin = await prisma.user.upsert({
-    where:  { email: 'admin@herizone.com' },
-    update: { isAdmin: true, passwordHash: adminPw },
-    create: {
+  const admin = await prisma.user.create({
+    data: {
       email: 'admin@herizone.com',
       name: 'Herizone Admin',
       passwordHash: adminPw,
       isAdmin: true,
+      isPremium: true, // Admin has premium access
     },
   });
-  log(`✅ admin        ${admin.email}`);
+  log(`✅ admin (premium)   ${admin.email}`);
 
-  // ── 2. REGULAR USERS ──────────────────────────────────────────────────────
-  const regularData = [
+  // ── 2. PREMIUM USERS ──────────────────────────────────────────────────────
+  const premiumData = [
+    {
+      email: 'premium1@example.com',
+      name: 'Sarah Premium',
+      bio: 'Premium member enjoying unlimited AI chat and expert access!',
+      profilePicture: 'https://api.dicebear.com/9.x/avataaars/svg?seed=sarah',
+    },
+    {
+      email: 'premium2@example.com',
+      name: 'Maya Premium',
+      bio: 'Love the premium features - so worth it!',
+      profilePicture: 'https://api.dicebear.com/9.x/avataaars/svg?seed=maya',
+    },
+    {
+      email: 'premium3@example.com',
+      name: 'Zara Premium',
+      bio: 'Premium subscriber, expecting my first baby!',
+      profilePicture: 'https://api.dicebear.com/9.x/avataaars/svg?seed=zara',
+    },
+  ];
+
+  const premiumPw = await hash('Premium123!');
+  const premiumUsers = await Promise.all(
+    premiumData.map((d) =>
+      prisma.user.create({
+        data: {
+          ...d,
+          passwordHash: premiumPw,
+          isPremium: true,
+          aiQuestionsCount: 0,
+          aiQuestionsLimit: 10, // Still has limit but won't be enforced
+          subscriptionExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+        },
+      })
+    )
+  );
+  premiumUsers.forEach((u) => log(`✅ premium user      ${u.email}`));
+
+  // ── 3. FREEMIUM USERS ─────────────────────────────────────────────────────
+  const freemiumData = [
     {
       email: 'amara.osei@example.com',
       name: 'Amara Osei',

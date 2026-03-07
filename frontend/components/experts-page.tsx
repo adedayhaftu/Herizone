@@ -4,41 +4,43 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useAppStore, type Expert, type ExpertTopic } from '@/lib/store';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  BadgeCheck,
-  BriefcaseBusiness,
-  CheckCircle2,
-  ChevronLeft,
-  Clock,
-  DollarSign,
-  MessageSquare,
-  Plus,
-  Search,
-  Send,
-  Stethoscope,
-  User,
-  X,
+    BadgeCheck,
+    BriefcaseBusiness,
+    CheckCircle2,
+    ChevronLeft,
+    Clock,
+    Crown,
+    DollarSign,
+    MessageSquare,
+    Plus,
+    Search,
+    Send,
+    Stethoscope,
+    User,
+    X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { PremiumUpgradeDialog } from './premium-upgrade-dialog';
 
 // ─── Brand palette (matches home page) ───────────────────────────────────────
 const C1 = '#CAA69B';
@@ -82,9 +84,10 @@ function ExpertCard({ expert }: { expert: Expert }) {
     .toUpperCase();
 
   return (
-    <div className="group rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm p-5 flex flex-col gap-4 hover:shadow-xl hover:bg-white/90 hover:border-[#CB978E]/40 transition-all duration-200 h-full">
-      <div className="flex items-start gap-4">
-        <div className="relative shrink-0">
+    <Link href={`/profile/${expert.id}`} className="block h-full transition-transform hover:scale-[1.02]">
+      <div className="group rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm p-5 flex flex-col gap-4 hover:shadow-xl hover:bg-white/90 hover:border-[#CB978E]/40 transition-all duration-200 h-full">
+        <div className="flex items-start gap-4">
+          <div className="relative shrink-0">
           <Avatar className="h-14 w-14">
             <AvatarImage src={expert.avatar} alt={expert.name} />
             <AvatarFallback
@@ -136,7 +139,7 @@ function ExpertCard({ expert }: { expert: Expert }) {
           Verified
         </span>
       </div>
-    </div>
+    </div></Link>
   );
 }
 
@@ -430,6 +433,9 @@ export function ExpertsPage() {
 
   const [askOpen, setAskOpen] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+  const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
+  
+  const isPremium = currentUser?.isPremium ?? false;
 
   useEffect(() => {
     fetchExperts();
@@ -480,10 +486,17 @@ export function ExpertsPage() {
             </div>
           </div>
           <Button
-            onClick={() => setAskOpen(true)}
+            onClick={() => {
+              if (!isAuthenticated || !isPremium) {
+                setShowPremiumPrompt(true);
+                return;
+              }
+              setAskOpen(true);
+            }}
             className="gap-2 text-white shrink-0"
             style={{ background: CTA }}
           >
+            {!isPremium && <Crown className="h-4 w-4" />}
             <Plus className="h-4 w-4" />
             Ask a Question
           </Button>
@@ -711,6 +724,13 @@ export function ExpertsPage() {
         </section>
 
       </div>
+
+      {/* Premium upgrade dialog */}
+      <PremiumUpgradeDialog
+        open={showPremiumPrompt}
+        onOpenChange={setShowPremiumPrompt}
+        feature="expert-questions"
+      />
 
       {/* ── CSS for animations ────────────────────────────────────────── */}
       <style>{`

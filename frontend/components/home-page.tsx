@@ -470,6 +470,146 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* ── PREMIUM PRICING SECTION ─────────────────────────────────── */}
+      <section className="relative overflow-hidden px-4 py-24 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-pink-50/30">
+        <div className="relative mx-auto max-w-6xl">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold" style={{ color: C2, borderColor: C3 }}>
+              <Sparkles className="h-4 w-4" />
+              Premium Membership
+            </div>
+            <h2 className="text-4xl font-extrabold tracking-tight text-gray-800 sm:text-5xl mb-4">
+              Get <span style={{ color: C2 }}>Unlimited Support</span>
+            </h2>
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+              Start free with 10 AI questions daily, or upgrade to premium for unlimited access and expert question features.
+            </p>
+          </div>
+
+          {/* Pricing Cards */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
+            <div className="rounded-3xl border-2 border-gray-200 bg-white p-8 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">Freemium</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-extrabold text-gray-800">Free</span>
+                  <span className="text-gray-500">forever</span>
+                </div>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <Heart className="h-5 w-5 shrink-0 mt-0.5" style={{ color: C2 }} />
+                  <div>
+                    <span className="font-medium text-gray-800">10 AI Chat Questions Daily</span>
+                    <p className="text-sm text-gray-500">Resets every 24 hours</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Heart className="h-5 w-5 shrink-0 mt-0.5" style={{ color: C2 }} />
+                  <span className="font-medium text-gray-800">Browse articles & community</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Heart className="h-5 w-5 shrink-0 mt-0.5" style={{ color: C2 }} />
+                  <span className="font-medium text-gray-800">Book expert consultations</span>
+                </li>
+                <li className="flex items-start gap-3 opacity-50">
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300 shrink-0 mt-0.5" />
+                  <span className="font-medium text-gray-500 line-through">Ask expert questions</span>
+                </li>
+              </ul>
+
+              <a
+                href="/auth"
+                className="block w-full rounded-full border-2 px-6 py-3.5 text-center font-semibold text-gray-800 transition-all hover:bg-gray-50"
+                style={{ borderColor: C3 }}
+              >
+                Get Started Free
+              </a>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="rounded-3xl border-4 p-8 shadow-2xl relative overflow-hidden" style={{ borderColor: C2, background: 'linear-gradient(135deg, #fff5f3 0%, #ffefef 100%)' }}>
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <div className="rounded-full px-4 py-1 text-xs font-bold text-white shadow-lg" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+                  MOST POPULAR
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-2" style={{ color: C2 }}>Premium</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-extrabold" style={{ color: C2 }}>$9.99</span>
+                  <span className="text-gray-500">/month</span>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+                    <Heart className="h-3 w-3 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-gray-800">Unlimited AI Chat Questions</span>
+                    <p className="text-sm text-gray-600">Ask as many as you need, 24/7</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+                    <MessageSquare className="h-3 w-3 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-gray-800">Ask Expert Questions Directly</span>
+                    <p className="text-sm text-gray-600">Post to verified professionals</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+                    <Sparkles className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="font-bold text-gray-800">Priority support & exclusive content</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+                    <Shield className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="font-bold text-gray-800">Ad-free experience</span>
+                </li>
+              </ul>
+
+              <a
+                href="/pricing"
+                className="block w-full rounded-full px-6 py-3.5 text-center font-bold text-white shadow-lg transition-all hover:brightness-105 active:scale-95"
+                style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
+              >
+                Upgrade to Premium →
+              </a>
+            </div>
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-16 text-center">
+            <p className="text-sm text-gray-400 mb-4">Trusted by thousands of mothers worldwide</p>
+            <div className="flex flex-wrap justify-center gap-8 text-gray-400">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span className="text-sm">12,400+ Members</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                <span className="text-sm">Verified Experts</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                <span className="text-sm">98% Satisfaction</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   );
 }

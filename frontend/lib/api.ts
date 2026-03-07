@@ -102,6 +102,14 @@ export interface AuthUser {
   bio: string | null;
   isAdmin: boolean;
   isExpert: boolean;
+  isPremium: boolean;
+  aiQuestionsCount: number;
+  aiQuestionsLimit: number;
+  specialty?: string | null;
+  yearsOfExperience?: number | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
+  availableHours?: string | null;
 }
 
 export const authApi = {
@@ -114,10 +122,37 @@ export const authApi = {
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────
+export interface PublicUserProfile {
+  id: string;
+  name: string | null;
+  profilePicture: string | null;
+  bio: string | null;
+  isExpert: boolean;
+  specialty?: string | null;
+  yearsOfExperience?: number | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
+  availableHours?: string | null;
+  createdAt: string;
+  _count: {
+    posts: number;
+    articles: number;
+    answers: number;
+  };
+}
+
 export const usersApi = {
   getMe: () => api.get<{ user: AuthUser & { children: unknown[]; pregnancyInfo: unknown[] } }>('/api/users/me'),
-  updateMe: (data: { name?: string; bio?: string; profilePicture?: string }) =>
+  updateMe: (data: {
+    name?: string;
+    bio?: string;
+    profilePicture?: string;
+    priceMin?: number;
+    priceMax?: number;
+    availableHours?: string;
+  }) =>
     api.patch<{ user: AuthUser }>('/api/users/me', data),
+  getProfile: (id: string) => guestRequest<{ user: PublicUserProfile }>(`/api/users/${id}`),
   addChild: (data: { name?: string; birthDate?: string }) =>
     api.post('/api/users/children', data),
   addPregnancy: (data: { dueDate?: string; trimester?: number }) =>
@@ -224,6 +259,7 @@ export interface ApiExpertApplication {
   licenseNumber: string | null;
   priceMin: number;
   priceMax: number;
+  availableHours: string | null;
   agreeToTerms: boolean;
   status: 'pending' | 'approved' | 'rejected';
   reviewNote: string | null;
@@ -252,6 +288,7 @@ export const expertApplicationsApi = {
     priceMin: number;
     priceMax: number;
     agreeToTerms: boolean;
+    availableHours?: string;
   }) =>
     api.post<{ application: ApiExpertApplication }>('/api/expert-applications', data),
   getMyApplication: () =>
@@ -310,7 +347,7 @@ export interface ApiChatMessage {
 
 export const chatApi = {
   sendMessage: (message: string) =>
-    api.post<{ message: ApiChatMessage }>('/api/chat', { message }),
+    api.post<{ message: ApiChatMessage; questionsRemaining?: number | null }>('/api/chat', { message }),
   getHistory: () =>
     api.get<{ messages: (ApiChatMessage & { feedback: { isHelpful: boolean }[] })[] }>(
       '/api/chat/history'

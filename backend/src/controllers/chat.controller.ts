@@ -8,24 +8,64 @@ import { chatWithAI } from '../services/ai.service';
 // POST /api/chat
 export const sendMessage = async (req: AuthRequest, res: Response): Promise<void> => {
   const { message } = req.body;
+  const user = req.user!;
+
+  // Check if user has exceeded AI questions limit (freemium users only)
+  if (!user.isPremium) {
+    // Reset count if it's a new period (e.g., daily reset)
+    const now = new Date();
+    const resetDate = user.aiQuestionsResetAt ? new Date(user.aiQuestionsResetAt) : null;
+    
+    if (!resetDate || now > resetDate) {
+      // Reset the counter (daily limit)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          aiQuestionsCount: 0,
+          aiQuestionsResetAt: new Date(now.getTime() + 24 * 60 * 60 * 1000), // +24 hours
+        },
+      });
+      user.aiQuestionsCount = 0;
+    }
+
+    // Check if limit exceeded
+    if (user.aiQuestionsCount >= user.aiQuestionsLimit) {
+      res.status(403).json({
+        error: 'AI question limit reached',
+        message: `You have reached your daily limit of ${user.aiQuestionsLimit} AI questions. Upgrade to Premium for unlimited access!`,
+        limitReached: true,
+        limit: user.aiQuestionsLimit,
+        resetAt: user.aiQuestionsResetAt,
+      });
+      return;
+    }
+  }
 
   // Save user message
   await prisma.chatMessage.create({
-    data: { userId: req.user!.id, message, isAi: false },
+    data: { userId: user.id, message, isAi: false },
   });
 
   try {
-    const { answer, confidence, sourceCount, sourceIds } = await chatWithAI(message, req.user!.id);
+    const { answer, confidence, sourceCount, sourceIds } = await chatWithAI(message, user.id);
 
     // Save AI response
     const aiMessage = await prisma.chatMessage.create({
       data: {
-        userId: req.user!.id,
+        userId: user.id,
         message: answer,
         isAi: true,
         sourceIds,
       },
     });
+
+    // Increment AI questions count for freemium users
+    if (!user.isPremium) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { aiQuestionsCount: { increment: 1 } },
+      });
+    }
 
     res.status(201).json({
       message: {
@@ -36,6 +76,7 @@ export const sendMessage = async (req: AuthRequest, res: Response): Promise<void
         isAi: true,
         createdAt: aiMessage.createdAt,
       },
+      questionsRemaining: user.isPremium ? null : user.aiQuestionsLimit - user.aiQuestionsCount - 1,
     });
   } catch (err) {
     console.error('AI chat error:', err);

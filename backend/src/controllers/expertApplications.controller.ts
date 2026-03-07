@@ -6,7 +6,7 @@ import { validate } from '../middleware/validate';
 
 // POST /api/expert-applications  — authenticated user applies to become expert
 export const applyAsExpert = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { bio, credentials, specialty, yearsOfExperience, licenseNumber, priceMin, priceMax, agreeToTerms } = req.body;
+  const { bio, credentials, specialty, yearsOfExperience, licenseNumber, priceMin, priceMax, availableHours, agreeToTerms } = req.body;
 
   // Check for existing pending/approved application
   const existing = await prisma.expertApplication.findFirst({
@@ -30,6 +30,7 @@ export const applyAsExpert = async (req: AuthRequest, res: Response): Promise<vo
       licenseNumber: licenseNumber ?? null,
       priceMin: Number(priceMin),
       priceMax: Number(priceMax),
+      availableHours,
       agreeToTerms: Boolean(agreeToTerms),
     },
   });

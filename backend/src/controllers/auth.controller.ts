@@ -12,6 +12,9 @@ const userShape = (user: {
   bio: string | null;
   isAdmin: boolean;
   isExpert: boolean;
+  isPremium: boolean;
+  aiQuestionsCount: number;
+  aiQuestionsLimit: number;
 }) => ({
   id: user.id,
   email: user.email,
@@ -20,6 +23,9 @@ const userShape = (user: {
   bio: user.bio,
   isAdmin: user.isAdmin,
   isExpert: user.isExpert,
+  isPremium: user.isPremium,
+  aiQuestionsCount: user.aiQuestionsCount,
+  aiQuestionsLimit: user.aiQuestionsLimit,
 });
 
 // ── Validation chains ─────────────────────────────────────────────────────────
@@ -71,6 +77,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         bio: true,
         isAdmin: true,
         isExpert: true,
+        isPremium: true,
+        aiQuestionsCount: true,
+        aiQuestionsLimit: true,
       },
     });
 
@@ -105,6 +114,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         isExpert: true,
         isBanned: true,
         passwordHash: true,
+        isPremium: true,
+        aiQuestionsCount: true,
+        aiQuestionsLimit: true,
       },
     });
 
@@ -148,6 +160,9 @@ export const getSession = async (req: Request, res: Response): Promise<void> => 
       bio: true,
       isAdmin: true,
       isExpert: true,
+      isPremium: true,
+      aiQuestionsCount: true,
+      aiQuestionsLimit: true,
       createdAt: true,
     },
   });

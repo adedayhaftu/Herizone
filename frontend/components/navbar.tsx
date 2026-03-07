@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAppStore, type View } from '@/lib/store';
-import { BookOpen, Heart, Home, LogOut, Menu, MessageSquare, PenLine, Settings, Stethoscope, User, Users } from 'lucide-react';
+import { BookOpen, Crown, Heart, Home, LogOut, Menu, MessageSquare, PenLine, Settings, Stethoscope, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -92,6 +92,17 @@ export function Navbar() {
 
         {/* ── Right side ───────────────────────────────────────────────── */}
         <div className="flex items-center gap-2.5">
+          {/* Premium Badge for non-premium users */}
+          {isAuthenticated && currentUser && !currentUser.isPremium && (
+            <Link
+              href="/pricing"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:brightness-105 ring-1 ring-inset ring-white/20"
+              style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
+            >
+              <Crown className="h-3.5 w-3.5" />
+              Go Premium
+            </Link>
+          )}
           {/* Join as Expert button — visible for guests and logged-in non-expert users */}
           {(!isAuthenticated || (currentUser && !currentUser.isExpert && !currentUser.isAdmin)) && (
             <Link

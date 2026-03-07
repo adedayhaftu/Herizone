@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, Heart, Minimize2, Send, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
+import { CheckCircle2, Crown, Heart, Minimize2, Send, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
+import { PremiumUpgradeDialog } from './premium-upgrade-dialog';
 
 // ── Brand palette (matches learn / experts / home pages) ──────────────────────
 const C2  = '#CB978E';
@@ -27,13 +28,19 @@ const QUICK_PROMPTS = [
 
 export function ChatbotWidget() {
   const router = useRouter();
-  const { chatOpen, chatMessages, chatLoading, setChatOpen, sendChatMessage, sendFeedback, isAuthenticated } = useAppStore();
+  const { chatOpen, chatMessages, chatLoading, setChatOpen, sendChatMessage, sendFeedback, isAuthenticated, currentUser } = useAppStore();
   const [inputValue, setInputValue] = useState('');
   const [minimized, setMinimized] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({});
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isPremium = currentUser?.isPremium ?? false;
+  const questionsRemaining = currentUser
+    ? currentUser.aiQuestionsLimit - currentUser.aiQuestionsCount
+    : 0;
 
   useEffect(() => {
     if (chatOpen && !minimized) {
@@ -47,12 +54,20 @@ export function ChatbotWidget() {
     }
   }, [chatOpen, minimized]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const content = inputValue.trim();
     if (!content || chatLoading) return;
     if (!isAuthenticated) { setShowLoginPrompt(true); return; }
-    sendChatMessage(content);
-    setInputValue('');
+    
+    try {
+      await sendChatMessage(content);
+      setInputValue('');
+    } catch (error: any) {
+      // Check if limit reached
+      if (error?.response?.data?.limitReached) {
+        setShowPremiumPrompt(true);
+      }
+    }
   };
 
   const handleQuickPrompt = (prompt: string) => {
@@ -313,6 +328,26 @@ export function ChatbotWidget() {
             className="border-t p-4 rounded-b-3xl"
             style={{ borderColor: `${C3}80`, background: 'rgba(255,255,255,0.6)' }}
           >
+            {/* Freemium usage indicator */}
+            {isAuthenticated && !isPremium && (
+              <div className="mb-3 flex items-center justify-between rounded-lg px-3 py-2" style={{ background: `${C3}20` }}>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {questionsRemaining} AI {questionsRemaining === 1 ? 'question' : 'questions'} remaining today
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowPremiumPrompt(true)}
+                  className="h-7 gap-1 text-xs font-semibold"
+                  style={{ borderColor: C2, color: C2 }}
+                >
+                  <Crown className="h-3 w-3" />
+                  Upgrade
+                </Button>
+              </div>
+            )}
             <div className="flex items-end gap-3">
               <Textarea
                 ref={textareaRef}
@@ -344,6 +379,13 @@ export function ChatbotWidget() {
           </div>
         </>
       )}
+
+      {/* Premium upgrade dialog */}
+      <PremiumUpgradeDialog
+        open={showPremiumPrompt}
+        onOpenChange={setShowPremiumPrompt}
+        feature="ai-chat"
+      />
     </div>
   );
 }

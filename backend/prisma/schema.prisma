@@ -23,10 +23,18 @@ model User {
   isExpert       Boolean  @default(false) @map("is_expert")
   isAdmin        Boolean  @default(false) @map("is_admin")
   isBanned       Boolean  @default(false) @map("is_banned")
+  isPremium      Boolean  @default(false) @map("is_premium")
+  aiQuestionsCount Int    @default(0) @map("ai_questions_count")
+  aiQuestionsLimit Int    @default(10) @map("ai_questions_limit")
+  aiQuestionsResetAt DateTime? @map("ai_questions_reset_at")
+  subscriptionExpiresAt DateTime? @map("subscription_expires_at")
   specialty      String?
   yearsOfExperience Int?  @map("years_of_experience")
   priceMin       Int?     @map("price_min")
   priceMax       Int?     @map("price_max")
+  availableHours String?  @map("available_hours")
+  reviews        Float?   @default(0)
+  reviewCount    Int      @default(0) @map("review_count")
   createdAt      DateTime @default(now()) @map("created_at")
 
   children       UserChild[]
@@ -162,6 +170,7 @@ model ExpertApplication {
   licenseNumber     String?                 @map("license_number")
   priceMin          Int                     @map("price_min")
   priceMax          Int                     @map("price_max")
+  availableHours    String?                 @map("available_hours")
   agreeToTerms      Boolean                 @default(false) @map("agree_to_terms")
   status            ExpertApplicationStatus @default(pending)
   reviewNote        String?                 @map("review_note")
