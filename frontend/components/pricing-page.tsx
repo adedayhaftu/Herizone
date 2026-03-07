@@ -126,7 +126,7 @@ export function PricingPage() {
               <CardDescription className="text-lg">Complete support for your journey</CardDescription>
               <div className="mt-4">
                 <span className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  $9.99
+                  499 ETB
                 </span>
                 <span className="text-muted-foreground ml-2">/month</span>
               </div>

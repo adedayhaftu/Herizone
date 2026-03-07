@@ -40,7 +40,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { PremiumUpgradeDialog } from './premium-upgrade-dialog';
 
 // ─── Brand palette (matches home page) ───────────────────────────────────────
 const C1 = '#CAA69B';
@@ -128,8 +127,8 @@ function ExpertCard({ expert }: { expert: Expert }) {
         <div className="flex items-center gap-1 text-sm font-bold" style={{ color: C2 }}>
           <DollarSign className="h-4 w-4" />
           {expert.priceMin === expert.priceMax
-            ? `$${expert.priceMin}/hr`
-            : `$${expert.priceMin}–$${expert.priceMax}/hr`}
+            ? `${expert.priceMin} ETB/session`
+            : `${expert.priceMin}–${expert.priceMax} ETB/session`}
         </div>
         <span
           className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white"
@@ -433,7 +432,6 @@ export function ExpertsPage() {
 
   const [askOpen, setAskOpen] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
-  const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
   
   const isPremium = currentUser?.isPremium ?? false;
 
@@ -481,43 +479,106 @@ export function ExpertsPage() {
             <div>
               <h1 className="text-xl font-bold text-foreground leading-tight">Ask Our Experts</h1>
               <p className="text-xs text-muted-foreground">
-                {questions.length > 0 ? `${questions.length} questions · ${experts.length} verified experts` : 'Answers within 48h'}
+                {isPremium && questions.length > 0 ? `${questions.length} questions · ${experts.length} verified experts` : 'Get answers from verified healthcare professionals'}
               </p>
             </div>
           </div>
-          <Button
-            onClick={() => {
-              if (!isAuthenticated || !isPremium) {
-                setShowPremiumPrompt(true);
-                return;
-              }
-              setAskOpen(true);
-            }}
-            className="gap-2 text-white shrink-0"
-            style={{ background: CTA }}
-          >
-            {!isPremium && <Crown className="h-4 w-4" />}
-            <Plus className="h-4 w-4" />
-            Ask a Question
-          </Button>
-        </div>
-
-        {/* ── Experts horizontal scroll ────────────────────────────────── */}
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Our Verified Experts</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Scroll to browse specialists →</p>
-            </div>
-            <Link
-              href="/join-as-expert"
-              className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white transition-all hover:brightness-105 shadow-sm"
+          {isPremium && (
+            <Button
+              onClick={() => setAskOpen(true)}
+              className="gap-2 text-white shrink-0"
               style={{ background: CTA }}
             >
-              <Stethoscope className="h-3.5 w-3.5" />
-              Join as Expert
-            </Link>
+              <Plus className="h-4 w-4" />
+              Ask a Question
+            </Button>
+          )}
+        </div>
+
+        {/* ── Premium Gate for Non-Premium Users ─────────────────────── */}
+        {!isPremium && (
+          <div className="max-w-3xl mx-auto my-16">
+            <div className="rounded-3xl border-4 p-8 sm:p-12 text-center shadow-2xl relative overflow-hidden" style={{ borderColor: C2, background: 'linear-gradient(135deg, #fff5f3 0%, #ffefef 100%)' }}>
+              {/* Decorative elements */}
+              <div aria-hidden className="absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-20" style={{ background: C1 }} />
+              <div aria-hidden className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full opacity-15" style={{ background: C2 }} />
+              
+              <div className="relative z-10">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full" style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}>
+                  <Crown className="h-10 w-10 text-white" />
+                </div>
+                
+                <h2 className="text-3xl font-extrabold mb-4 text-gray-800">
+                  Premium Feature
+                </h2>
+                
+                <p className="text-lg text-gray-600 mb-6 max-w-xl mx-auto">
+                  Access to <span className="font-bold" style={{ color: C2 }}>Ask an Expert</span> is available exclusively for Premium members. Get personalized answers from verified healthcare professionals.
+                </p>
+
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-6 max-w-lg mx-auto">
+                  <p className="text-sm font-semibold mb-3" style={{ color: C2 }}>Premium Benefits:</p>
+                  <ul className="space-y-2 text-sm text-gray-700">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
+                      Ask unlimited questions to verified experts
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
+                      Unlimited AI chatbot conversations
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
+                      Priority support and expert replies
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: C2 }} />
+                      Ad-free experience
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                  <a
+                    href="/pricing"
+                    className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-bold text-white shadow-lg transition-all hover:brightness-105 active:scale-95"
+                    style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
+                  >
+                    <Crown className="h-5 w-5" />
+                    Upgrade to Premium
+                  </a>
+                  <p className="text-sm text-gray-500">
+                    Only <span className="font-bold" style={{ color: C2 }}>499 ETB/month</span>
+                  </p>
+                </div>
+
+                {!isAuthenticated && (
+                  <p className="mt-6 text-xs text-gray-400">
+                    Don't have an account? <a href="/auth" className="font-semibold underline" style={{ color: C2 }}>Sign up free</a> to explore other features
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
+        )}
+
+        {/* ── Experts horizontal scroll (Premium Only) ────────────────────────────────── */}
+        {isPremium && (
+          <section className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Our Verified Experts</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Scroll to browse specialists →</p>
+              </div>
+              <Link
+                href="/join-as-expert"
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white transition-all hover:brightness-105 shadow-sm"
+                style={{ background: CTA }}
+              >
+                <Stethoscope className="h-3.5 w-3.5" />
+                Join as Expert
+              </Link>
+            </div>
 
           {expertsLoading ? (
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
@@ -564,10 +625,12 @@ export function ExpertsPage() {
             </div>
           )}
         </section>
+        )}
 
-        <Separator className="mb-8 opacity-30" />
+        {isPremium && <Separator className="mb-8 opacity-30" />}
 
-        {/* ── Questions section ────────────────────────────────────────── */}
+        {/* ── Questions section (Premium Only) ────────────────────────────────────────── */}
+        {isPremium && (
         <section>
           <div className="flex items-center justify-between mb-5">
             <div>
@@ -722,15 +785,9 @@ export function ExpertsPage() {
             </div>
           )}
         </section>
+        )}
 
       </div>
-
-      {/* Premium upgrade dialog */}
-      <PremiumUpgradeDialog
-        open={showPremiumPrompt}
-        onOpenChange={setShowPremiumPrompt}
-        feature="expert-questions"
-      />
 
       {/* ── CSS for animations ────────────────────────────────────────── */}
       <style>{`

@@ -98,11 +98,11 @@ async function main() {
   const expertPw = await hash('Expert@Herizone2026!');
   const experts = [];
   const expertData = [
-    { email: 'dr.adaeze.obi@example.com', name: 'Dr. Adaeze Obi', specialty: 'Obstetrics & Gynaecology', yearsOfExperience: 12, priceMin: 40, priceMax: 80, bio: 'OB-GYN specialist' },
-    { email: 'dr.kwame.mensah@example.com', name: 'Dr. Kwame Mensah', specialty: 'Paediatrics', yearsOfExperience: 9, priceMin: 35, priceMax: 70, bio: 'Pediatrician' },
-    { email: 'nurse.yetunde@example.com', name: 'Yetunde Balogun RN', specialty: 'Lactation', yearsOfExperience: 7, priceMin: 20, priceMax: 50, bio: 'Lactation consultant' },
-    { email: 'dr.seun.akin@example.com', name: 'Dr. Seun Akin', specialty: 'Mental Health', yearsOfExperience: 10, priceMin: 45, priceMax: 90, bio: 'Mental health specialist' },
-    { email: 'ntr.chinwe@example.com', name: 'Chinwe Uko RD', specialty: 'Nutrition', yearsOfExperience: 6, priceMin: 30, priceMax: 60, bio: 'Nutrition expert' },
+    { email: 'dr.adaeze.obi@example.com', name: 'Dr. Adaeze Obi', specialty: 'Obstetrics & Gynaecology', yearsOfExperience: 12, priceMin: 2000, priceMax: 4000, bio: 'OB-GYN specialist' },
+    { email: 'dr.kwame.mensah@example.com', name: 'Dr. Kwame Mensah', specialty: 'Paediatrics', yearsOfExperience: 9, priceMin: 1750, priceMax: 3500, bio: 'Pediatrician' },
+    { email: 'nurse.yetunde@example.com', name: 'Yetunde Balogun RN', specialty: 'Lactation', yearsOfExperience: 7, priceMin: 1000, priceMax: 2500, bio: 'Lactation consultant' },
+    { email: 'dr.seun.akin@example.com', name: 'Dr. Seun Akin', specialty: 'Mental Health', yearsOfExperience: 10, priceMin: 2250, priceMax: 4500, bio: 'Mental health specialist' },
+    { email: 'ntr.chinwe@example.com', name: 'Chinwe Uko RD', specialty: 'Nutrition', yearsOfExperience: 6, priceMin: 1500, priceMax: 3000, bio: 'Nutrition expert' },
   ];
   
   for (const d of expertData) {

@@ -2,14 +2,14 @@
 
 import { useAppStore, type View } from '@/lib/store';
 import {
-    ArrowRight,
-    BookOpen,
-    Heart,
-    MessageSquare,
-    Shield,
-    Sparkles,
-    Stethoscope,
-    Users,
+  ArrowRight,
+  BookOpen,
+  Heart,
+  MessageSquare,
+  Shield,
+  Sparkles,
+  Stethoscope,
+  Users,
 } from 'lucide-react';
 
 // ── Brand palette ─────────────────────────────────────────────────────────────
@@ -276,7 +276,7 @@ export function HomePage() {
       </section>
 
       {/* ── STATS BAR ────────────────────────────────────────────────── */}
-      <section
+      {/* <section
         className="border-y px-4 py-16 sm:px-6 lg:px-8"
         style={{ borderColor: '#ecddd9', background: '#fdf6f4' }}
       >
@@ -295,7 +295,7 @@ export function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ── THE HERIZONE EXPERIENCE ───────────────────────────────────── */}
       <section className="px-4 py-28 sm:px-6 lg:px-8" style={{ background: '#fff' }}>
@@ -541,7 +541,7 @@ export function HomePage() {
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2" style={{ color: C2 }}>Premium</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-extrabold" style={{ color: C2 }}>$9.99</span>
+                  <span className="text-5xl font-extrabold" style={{ color: C2 }}>499 ETB</span>
                   <span className="text-gray-500">/month</span>
                 </div>
               </div>

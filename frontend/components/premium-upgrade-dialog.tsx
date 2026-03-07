@@ -76,7 +76,7 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
             </div>
 
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold" style={{ color: C2 }}>$9.99</span>
+              <span className="text-4xl font-bold" style={{ color: C2 }}>499 ETB</span>
               <span className="text-muted-foreground">/month</span>
             </div>
 
