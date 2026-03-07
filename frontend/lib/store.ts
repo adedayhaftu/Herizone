@@ -268,7 +268,7 @@ function mapExpert(e: ApiExpert): Expert {
 const welcomeMessage: ChatMessage = {
   id: 'msg-welcome',
   content:
-    "Hello! I'm Heri, your AI support assistant. I can help with questions about pregnancy, parenting, and maternal health. My answers come from our verified knowledge base. Always consult your healthcare provider for medical advice. How can I help you today?",
+    "Hello! I'm Bloom 🌸, your AI support assistant. I can help with questions about pregnancy, parenting, and maternal health. My answers come from our verified knowledge base of expert advice and community wisdom. How can I help you today?",
   isAi: true,
   timestamp: new Date(),
 };

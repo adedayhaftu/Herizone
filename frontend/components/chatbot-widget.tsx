@@ -1,23 +1,32 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useAppStore } from '@/lib/store';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, X, Send, Sparkles, Minimize2 } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
+import { cn } from '@/lib/utils';
+import { CheckCircle2, Heart, Minimize2, Send, Sparkles, ThumbsDown, ThumbsUp, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 
 const QUICK_PROMPTS = [
   'How do I manage morning sickness?',
   'When should I worry about my baby\'s crying?',
   'Tips for breastfeeding difficulties',
   'Signs of postpartum depression',
+  'Safe exercises during pregnancy',
+  'Baby sleep schedules by age',
 ];
 
 export function ChatbotWidget() {
-  const { chatOpen, chatMessages, chatLoading, setChatOpen, sendChatMessage } = useAppStore();
+  const router = useRouter();
+  const { chatOpen, chatMessages, chatLoading, setChatOpen, sendChatMessage, sendFeedback, isAuthenticated } = useAppStore();
   const [inputValue, setInputValue] = useState('');
   const [minimized, setMinimized] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({});
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,63 +45,79 @@ export function ChatbotWidget() {
   const handleSend = () => {
     const content = inputValue.trim();
     if (!content || chatLoading) return;
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
     sendChatMessage(content);
     setInputValue('');
   };
 
   const handleQuickPrompt = (prompt: string) => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
     sendChatMessage(prompt);
+  };
+
+  const handleFeedback = async (messageId: string, isHelpful: boolean) => {
+    await sendFeedback(messageId, isHelpful);
+    setFeedbackGiven({ ...feedbackGiven, [messageId]: true });
   };
 
   if (!chatOpen) {
     return (
       <button
         onClick={() => setChatOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-purple-600 text-white shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-pink-500/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pink-400 focus-visible:ring-offset-2 animate-pulse"
         aria-label="Open AI support chat"
       >
-        <Sparkles className="h-6 w-6" />
+        <Sparkles className="h-7 w-7" />
       </button>
     );
   }
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-xl transition-all duration-200 ${
-        minimized ? 'h-14 w-72' : 'h-[520px] w-80 sm:w-96'
-      }`}
+      className={cn(
+        'fixed bottom-8 right-8 z-50 flex flex-col rounded-3xl border-2 border-pink-200 dark:border-pink-200 bg-gradient-to-br from-white via-pink-50/30 to-purple-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 shadow-2xl backdrop-blur-sm transition-all duration-300',
+        minimized ? 'h-16 w-96' : 'h-[700px] w-[480px]'
+      )}
       role="dialog"
-      aria-label="AI Support Chat"
+      aria-label="Bloom AI Support Chat"
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 rounded-t-2xl bg-primary px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20">
-            <Sparkles className="h-4 w-4 text-primary-foreground" />
+      <div className="flex items-center justify-between gap-3 rounded-t-3xl bg-gradient-to-r from-blue-500 via-blue-300 to-pink-200 px-6 py-4 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm ring-2 ring-white/30">
+            <Heart className="h-6 w-6 text-white animate-pulse" fill="currentColor" />
+            <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-400 ring-2 ring-white" />
           </div>
           <div>
-            <p className="text-sm font-medium text-primary-foreground leading-none">
+            <p className="text-base font-bold text-white leading-none flex items-center gap-2">
               Bloom AI
+              <CheckCircle2 className="h-4 w-4" />
             </p>
-            <p className="mt-0.5 text-xs text-primary-foreground/70">
-              {chatLoading ? 'Typing...' : 'Always here for you'}
+            <p className="mt-1 text-sm text-white/90 font-medium">
+              {chatLoading ? 'Thinking...' : 'Always here to help ✨'}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setMinimized(!minimized)}
-            className="rounded-md p-1.5 text-primary-foreground/70 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            className="rounded-xl p-2 text-white/80 transition-all hover:bg-white/20 hover:text-white"
             aria-label={minimized ? 'Expand chat' : 'Minimize chat'}
           >
-            <Minimize2 className="h-3.5 w-3.5" />
+            <Minimize2 className="h-4 w-4" />
           </button>
           <button
             onClick={() => setChatOpen(false)}
-            className="rounded-md p-1.5 text-primary-foreground/70 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+            className="rounded-xl p-2 text-white/80 transition-all hover:bg-white/20 hover:text-white"
             aria-label="Close chat"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -100,49 +125,115 @@ export function ChatbotWidget() {
       {!minimized && (
         <>
           {/* Disclaimer */}
-          <div className="border-b border-border bg-muted/30 px-4 py-2.5">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              General information only — not medical advice. Always consult your healthcare provider.
+          <div className="border-b-2 border-pink-100 dark:border-pink-900/50 bg-gradient-to-r from-pink-50/50 to-purple-50/50 dark:from-pink-950/20 dark:to-purple-950/20 px-5 py-3">
+            <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+              💡 General information only — not medical advice. Always consult your healthcare provider.
             </p>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5 scroll-smooth">
             {chatMessages.map((message) => (
               <div
                 key={message.id}
-                className={`flex gap-2.5 ${message.isAi ? '' : 'flex-row-reverse'}`}
+                className={cn(
+                  'flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300',
+                  message.isAi ? '' : 'flex-row-reverse'
+                )}
               >
                 {message.isAi && (
-                  <Avatar className="h-7 w-7 shrink-0 mt-0.5">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                      <Heart className="h-3.5 w-3.5" fill="currentColor" />
+                  <Avatar className="h-9 w-9 shrink-0 mt-1 ring-2 ring-pink-200 dark:ring-pink-800">
+                    <AvatarFallback className="bg-gradient-to-br from-pink-200 to-blue-300 text-white">
+                      <Heart className="h-4 w-4" fill="currentColor" />
                     </AvatarFallback>
                   </Avatar>
                 )}
-                <div
-                  className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
-                    message.isAi
-                      ? 'rounded-tl-sm bg-muted text-foreground'
-                      : 'rounded-tr-sm bg-primary text-primary-foreground'
-                  }`}
-                >
-                  {message.content}
+                <div className="flex flex-col gap-2 max-w-[85%]">
+                  <div
+                    className={cn(
+                      'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-md',
+                      message.isAi
+                        ? 'rounded-tl-sm bg-gradient-to-br from-white to-pink-50/50 dark:from-gray-800 dark:to-gray-850 text-foreground border border-pink-100 dark:border-pink-900/30'
+                        : 'rounded-tr-sm bg-gradient-to-br from-pink-500 to-purple-600 text-white shadow-pink-500/30'
+                    )}
+                  >
+                    {message.isAi ? (
+                      <div className="prose prose-pink prose-sm max-w-none dark:prose-invert [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>li]:my-0 [&>h1]:mt-2 [&>h2]:mt-2 [&>h3]:mt-2 [&>code]:text-pink-700 [&>pre]:bg-gray-100 dark:[&>pre]:bg-gray-800 [&>a]:text-pink-500">
+                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      message.content
+                    )}
+                  </div>
+                  
+                  {/* Confidence & Feedback */}
+                  {message.isAi && message.id !== 'msg-welcome' && (
+                    <div className="flex items-center gap-3 px-2">
+                      {message.confidence !== undefined && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <div className="flex gap-0.5">
+                            {[...Array(3)].map((_, i) => (
+                              <div
+                                key={i}
+                                className={cn(
+                                  'h-1.5 w-1.5 rounded-full',
+                                  i < Math.floor((message.confidence || 0) / 33)
+                                    ? 'bg-green-500'
+                                    : 'bg-gray-300 dark:bg-gray-700'
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <span className="font-medium">{message.confidence}%</span>
+                        </div>
+                      )}
+                      {message.sourceCount !== undefined && message.sourceCount > 0 && (
+                        <div className="text-xs text-muted-foreground font-medium">
+                          📚 {message.sourceCount} {message.sourceCount === 1 ? 'source' : 'sources'}
+                        </div>
+                      )}
+                      {!feedbackGiven[message.id] && (
+                        <div className="flex items-center gap-1 ml-auto">
+                          <button
+                            onClick={() => handleFeedback(message.id, true)}
+                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-950"
+                            aria-label="Helpful"
+                          >
+                            <ThumbsUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleFeedback(message.id, false)}
+                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-950"
+                            aria-label="Not helpful"
+                          >
+                            <ThumbsDown className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+                      {feedbackGiven[message.id] && (
+                        <div className="text-xs text-green-600 dark:text-green-400 font-medium ml-auto">
+                          Thanks for your feedback! 💚
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
 
             {chatLoading && (
-              <div className="flex gap-2.5">
-                <Avatar className="h-7 w-7 shrink-0 mt-0.5">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                    <Heart className="h-3.5 w-3.5" fill="currentColor" />
+              <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2">
+                <Avatar className="h-9 w-9 shrink-0 mt-1 ring-2 ring-pink-200 dark:ring-pink-800">
+                  <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white">
+                    <Heart className="h-4 w-4" fill="currentColor" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-3">
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:0ms]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:150ms]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:300ms]" />
+                <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-gradient-to-br from-white to-pink-50/50 dark:from-gray-800 dark:to-gray-850 border border-pink-100 dark:border-pink-900/30 px-5 py-4 shadow-md">
+                  <span className="h-2 w-2 rounded-full bg-pink-500 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-2 w-2 rounded-full bg-rose-500 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-2 w-2 rounded-full bg-purple-500 animate-bounce [animation-delay:300ms]" />
                 </div>
               </div>
             )}
@@ -151,14 +242,16 @@ export function ChatbotWidget() {
 
           {/* Quick prompts — only show if 1 message (just the greeting) */}
           {chatMessages.length === 1 && (
-            <div className="border-t border-border px-4 py-3">
-              <p className="mb-2 text-xs text-muted-foreground">Suggested questions</p>
-              <div className="flex flex-col gap-1.5">
+            <div className="border-t-2 border-pink-100 dark:border-pink-900/50 px-5 py-4 bg-gradient-to-r from-pink-50/30 to-purple-50/30 dark:from-pink-950/10 dark:to-purple-950/10">
+              <p className="mb-3 text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                ✨ Popular questions
+              </p>
+              <div className="grid grid-cols-2 gap-2">
                 {QUICK_PROMPTS.map((prompt) => (
                   <button
                     key={prompt}
                     onClick={() => handleQuickPrompt(prompt)}
-                    className="rounded-lg border border-border bg-background px-3 py-2 text-left text-xs text-foreground transition-colors hover:border-primary/40 hover:bg-muted"
+                    className="rounded-xl border-2 border-pink-200 dark:border-pink-900/50 bg-white dark:bg-gray-900 px-3 py-2.5 text-left text-xs font-medium text-foreground transition-all hover:border-pink-400 hover:bg-gradient-to-br hover:from-pink-50 hover:to-purple-50 dark:hover:from-pink-950/30 dark:hover:to-purple-950/30 hover:shadow-md disabled:opacity-50"
                     disabled={chatLoading}
                   >
                     {prompt}
@@ -169,11 +262,32 @@ export function ChatbotWidget() {
           )}
 
           {/* Input */}
-          <div className="border-t border-border p-3">
-            <div className="flex items-end gap-2">
+          {showLoginPrompt && (
+            <div className="mb-3 rounded-lg border border-pink-200 bg-pink-50/60 p-3 text-center">
+              <p className="text-sm font-medium">Please sign in to use Bloom chat.</p>
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <Button
+                  onClick={() => router.push('/auth')}
+                  className="rounded-md bg-pink-500 text-white px-3 py-1.5"
+                >
+                  Log in / Sign up
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowLoginPrompt(false)}
+                  className="rounded-md px-3 py-1.5"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="border-t-2 border-pink-100 dark:border-pink-900/50 p-4 bg-white/50 dark:bg-gray-950/50 rounded-b-3xl">
+            <div className="flex items-end gap-3">
               <Textarea
                 ref={textareaRef}
-                placeholder="Ask anything..."
+                placeholder="Ask anything about pregnancy, parenting, or health..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => {
@@ -182,7 +296,7 @@ export function ChatbotWidget() {
                     handleSend();
                   }
                 }}
-                className="min-h-[40px] max-h-24 resize-none rounded-xl border-input text-xs leading-relaxed"
+                className="min-h-[48px] max-h-32 resize-none rounded-xl border-2 border-pink-200 dark:border-pink-900/50 text-sm leading-relaxed focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20"
                 disabled={chatLoading}
                 rows={1}
               />
@@ -190,10 +304,10 @@ export function ChatbotWidget() {
                 size="icon"
                 onClick={handleSend}
                 disabled={!inputValue.trim() || chatLoading}
-                className="h-9 w-9 shrink-0 rounded-xl"
+                className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg hover:shadow-pink-500/50 transition-all duration-200"
                 aria-label="Send message"
               >
-                <Send className="h-3.5 w-3.5" />
+                <Send className="h-5 w-5" />
               </Button>
             </div>
           </div>

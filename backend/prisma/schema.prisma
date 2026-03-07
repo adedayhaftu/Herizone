@@ -3,11 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
 }
 
 model User {
@@ -256,16 +258,17 @@ model ChatFeedback {
 }
 
 model KnowledgeBase {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id              String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   question        String
   answer          String
-  sourceType      String   @map("source_type") // 'community_post', 'expert_answer', 'article'
-  sourceId        String?  @map("source_id") @db.Uuid
-  confidenceScore Int      @default(1) @map("confidence_score")
-  timesReferenced Int      @default(0) @map("times_referenced")
-  isVerified      Boolean  @default(false) @map("is_verified")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  embedding       Unsupported("vector(768)")?
+  sourceType      String                     @map("source_type") // 'community_post', 'expert_answer', 'article'
+  sourceId        String?                    @map("source_id") @db.Uuid
+  confidenceScore Int                        @default(1) @map("confidence_score")
+  timesReferenced Int                        @default(0) @map("times_referenced")
+  isVerified      Boolean                    @default(false) @map("is_verified")
+  createdAt       DateTime                   @default(now()) @map("created_at")
+  updatedAt       DateTime                   @updatedAt @map("updated_at")
 
   @@map("knowledge_base")
 }

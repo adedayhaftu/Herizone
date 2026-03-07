@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { validate } from '../middleware/validate';
+import { learnFromArticle } from '../services/knowledge.service';
 
 // GET /api/articles  — public returns published; ?mine=true returns own articles for expert
 export const getArticles = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -151,6 +152,12 @@ export const publishArticle = async (req: AuthRequest, res: Response): Promise<v
     data: { status: 'published' as any },
     include: { author: { select: { id: true, name: true } } },
   });
+
+  // Trigger knowledge ingestion in the background
+  learnFromArticle(article.id).catch((err) =>
+    console.error('Knowledge learning failed for article:', article.id, err)
+  );
+
   res.json({ article });
 };
 

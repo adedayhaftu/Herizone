@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { validate } from '../middleware/validate';
+import { learnFromPost } from '../services/knowledge.service';
 
 // POST /api/posts/:id/comments
 export const addComment = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -22,6 +23,14 @@ export const addComment = async (req: AuthRequest, res: Response): Promise<void>
     }),
     prisma.post.update({ where: { id: postId }, data: { commentCount: { increment: 1 } } }),
   ]);
+
+  // If the post is already high-engagement (20+ likes), re-extract knowledge
+  // using the latest comment as the answer
+  if (post.likeCount >= 20) {
+    learnFromPost(postId).catch((err) =>
+      console.error('Knowledge learning failed for post after comment:', postId, err)
+    );
+  }
 
   res.status(201).json({ comment });
 };

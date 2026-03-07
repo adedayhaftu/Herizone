@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { validate } from '../middleware/validate';
+import { learnFromPost } from '../services/knowledge.service';
 
 // GET /api/posts
 export const getPosts = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -116,6 +117,14 @@ export const likePost = async (req: AuthRequest, res: Response): Promise<void> =
     prisma.like.create({ data: { postId, userId: req.user!.id } }),
     prisma.post.update({ where: { id: postId }, data: { likeCount: { increment: 1 } } }),
   ]);
+
+  // Check the new like count; if it just crossed 20 trigger knowledge ingestion
+  const updated = await prisma.post.findUnique({ where: { id: postId }, select: { likeCount: true } });
+  if (updated && updated.likeCount >= 20) {
+    learnFromPost(postId).catch((err) =>
+      console.error('Knowledge learning failed for post:', postId, err)
+    );
+  }
 
   res.status(201).json({ message: 'Liked' });
 };
