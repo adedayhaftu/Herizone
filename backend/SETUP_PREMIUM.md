@@ -153,5 +153,5 @@ Run: `npx prisma generate`
 
 ### Pricing
 - **Freemium:** Free (10 AI questions/day)
-- **Premium:** 499 ETB/month (placeholder - payment integration needed)
+- **Premium:** 99 ETB/month (placeholder - payment integration needed)
 - **Expert Consultations:** Priced per session in Ethiopian Birr (varies by expert)

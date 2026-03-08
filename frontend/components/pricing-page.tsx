@@ -3,38 +3,66 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { paymentsApi } from '@/lib/api';
 import { useAppStore } from '@/lib/store';
 import { Check, Crown, Heart, MessageCircle, Sparkles, Star, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function PricingPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const user = useAppStore((state) => state.currentUser);
   const isAuthenticated = useAppStore((state) => state.isAuthenticated);
 
-  const handleGetStarted = (plan: 'free' | 'premium') => {
+  const handleGetStarted = async (plan: 'free' | 'premium') => {
     if (!isAuthenticated) {
       router.push('/auth');
       return;
     }
 
     if (plan === 'premium') {
-      // TODO: Integrate payment gateway (Stripe/PayPal)
-      alert('Payment integration coming soon! For now, contact admin to upgrade your account.');
+      if (user?.isPremium) {
+        router.push('/experts');
+        return;
+      }
+
+      const phone = window.prompt('Enter your M-Pesa phone number (e.g., 0912345678):')?.trim();
+      if (!phone) {
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const { message } = await paymentsApi.initializePremium({ phone, expertId: undefined });
+        toast({ title: 'Payment initiated', description: message || 'Check your phone to approve the payment.' });
+        router.push('/experts');
+      } catch (err: any) {
+        console.error('premium checkout error', err);
+        toast({
+          variant: 'destructive',
+          title: 'Payment unavailable',
+          description: err?.message || 'Could not start M-Pesa payment. Please try again.',
+        });
+      } finally {
+        setLoading(false);
+      }
     } else {
       router.push('/');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-purple-50 to-white dark:from-gray-900 dark:via-purple-950 dark:to-gray-900">
+  <div className="min-h-screen bg-linear-to-b from-pink-50 via-purple-50 to-white dark:from-gray-900 dark:via-purple-950 dark:to-gray-900">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16 text-center">
-        <Badge className="mb-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0">
+  <Badge className="mb-4 bg-linear-to-r from-pink-500 to-purple-500 text-white border-0">
           <Sparkles className="mr-1 h-3 w-3" />
           Premium Membership
         </Badge>
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+  <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-linear-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
           Choose Your Journey
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12">
@@ -61,35 +89,35 @@ export function PricingPage() {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">10 AI Chat Questions Daily</p>
                     <p className="text-sm text-muted-foreground">Get instant answers about pregnancy and childcare</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Browse Articles & Resources</p>
                     <p className="text-sm text-muted-foreground">Access our knowledge base</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Community Forums</p>
                     <p className="text-sm text-muted-foreground">Connect with other mothers</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium">Book Expert Consultations</p>
                     <p className="text-sm text-muted-foreground">Schedule paid sessions with specialists</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 opacity-50">
-                  <div className="h-5 w-5 rounded-full border-2 border-gray-300 mt-0.5 flex-shrink-0" />
+                  <div className="h-5 w-5 rounded-full border-2 border-gray-300 mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium line-through">Ask Expert Questions</p>
                     <p className="text-sm text-muted-foreground">Premium feature</p>
@@ -111,22 +139,22 @@ export function PricingPage() {
           {/* Premium Plan */}
           <Card className="relative border-4 border-gradient-to-r from-pink-500 to-purple-500 hover:shadow-2xl transition-shadow">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 px-4 py-1">
+              <Badge className="bg-linear-to-r from-pink-500 to-purple-500 text-white border-0 px-4 py-1">
                 <Crown className="mr-1 h-4 w-4" />
                 Most Popular
               </Badge>
             </div>
-            <CardHeader className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
+            <CardHeader className="bg-linear-to-br from-pink-50 to-purple-50 dark:from-pink-950/20 dark:to-purple-950/20">
               <div className="flex items-center gap-2 mb-2">
                 <Crown className="h-6 w-6 text-purple-600" />
-                <CardTitle className="text-2xl bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                <CardTitle className="text-2xl bg-linear-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
                   Premium
                 </CardTitle>
               </div>
               <CardDescription className="text-lg">Complete support for your journey</CardDescription>
               <div className="mt-4">
-                <span className="text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                  499 ETB
+                <span className="text-4xl font-bold bg-linear-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                  99 ETB
                 </span>
                 <span className="text-muted-foreground ml-2">/month</span>
               </div>
@@ -138,7 +166,7 @@ export function PricingPage() {
               </p>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="h-5 w-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="h-5 w-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="h-3 w-3 text-white" />
                   </div>
                   <div>
@@ -150,7 +178,7 @@ export function PricingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="h-5 w-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="h-5 w-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="h-3 w-3 text-white" />
                   </div>
                   <div>
@@ -162,7 +190,7 @@ export function PricingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="h-5 w-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="h-5 w-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="h-3 w-3 text-white" />
                   </div>
                   <div>
@@ -171,7 +199,7 @@ export function PricingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="h-5 w-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="h-5 w-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="h-3 w-3 text-white" />
                   </div>
                   <div>
@@ -180,7 +208,7 @@ export function PricingPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="h-5 w-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="h-5 w-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="h-3 w-3 text-white" />
                   </div>
                   <div>
@@ -192,10 +220,11 @@ export function PricingPage() {
             </CardContent>
             <CardFooter>
               <Button 
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                className="w-full bg-linear-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                disabled={loading}
                 onClick={() => handleGetStarted('premium')}
               >
-                {isAuthenticated && user?.isPremium ? (
+                {loading ? 'Redirecting…' : user?.isPremium ? (
                   <>
                     <Check className="mr-2 h-4 w-4" />
                     Current Plan
@@ -217,7 +246,7 @@ export function PricingPage() {
         <h2 className="text-3xl font-bold text-center mb-12">Why Go Premium?</h2>
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="mx-auto w-16 h-16 bg-linear-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
               <MessageCircle className="h-8 w-8 text-white" />
             </div>
             <h3 className="text-xl font-semibold">Unlimited Support</h3>
@@ -226,7 +255,7 @@ export function PricingPage() {
             </p>
           </div>
           <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="mx-auto w-16 h-16 bg-linear-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
               <Users className="h-8 w-8 text-white" />
             </div>
             <h3 className="text-xl font-semibold">Expert Access</h3>
@@ -235,7 +264,7 @@ export function PricingPage() {
             </p>
           </div>
           <div className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="mx-auto w-16 h-16 bg-linear-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
               <Star className="h-8 w-8 text-white" />
             </div>
             <h3 className="text-xl font-semibold">Premium Content</h3>
@@ -295,7 +324,7 @@ export function PricingPage() {
 
       {/* CTA Section */}
       <div className="container mx-auto px-4 py-16">
-        <Card className="bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0">
+  <Card className="bg-linear-to-r from-pink-500 to-purple-500 text-white border-0">
           <CardContent className="text-center py-12">
             <Crown className="mx-auto h-16 w-16 mb-6" />
             <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>

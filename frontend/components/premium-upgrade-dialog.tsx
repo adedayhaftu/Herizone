@@ -3,13 +3,18 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { paymentsApi } from '@/lib/api';
+import { useAppStore } from '@/lib/store';
 import { Check, Crown, Infinity, MessageSquare, Sparkles, Stethoscope } from 'lucide-react';
+import { useState } from 'react';
 
 const C2 = '#CB978E';
 const C1 = '#CAA69B';
@@ -21,6 +26,11 @@ interface PremiumUpgradeDialogProps {
 }
 
 export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpgradeDialogProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [phone, setPhone] = useState('');
+  const updateProfile = useAppStore((s) => s.updateProfile);
+
   const featureMessages = {
     'ai-chat': {
       title: 'Unlimited AI Chat Access',
@@ -42,9 +52,36 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
 
   const FeatureIcon = currentFeature.icon;
 
+  const detectExpertContext = (): string | undefined => {
+    if (typeof window === 'undefined') return undefined;
+    const match = window.location.pathname.match(/profile\/(\w+)/);
+    return match?.[1];
+  };
+
+  const startCheckout = async () => {
+    setLoading(true);
+    try {
+      const expertId = detectExpertContext();
+      const { message } = await paymentsApi.initializePremium({ phone, expertId });
+      // Optimistic client update
+      updateProfile({ isPremium: true });
+      toast({ title: 'Payment initiated', description: message || 'Check your phone to approve the payment.' });
+      onOpenChange(false);
+    } catch (err: any) {
+      console.error('premium checkout error', err);
+      toast({
+        variant: 'destructive',
+        title: 'Payment unavailable',
+        description: err?.message || 'Could not start Chapa checkout. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] border-none bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30">
+  <DialogContent className="sm:max-w-xl border-none bg-linear-to-br from-white via-purple-50/30 to-pink-50/30">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
             <div
@@ -76,7 +113,7 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
             </div>
 
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-bold" style={{ color: C2 }}>499 ETB</span>
+              <span className="text-4xl font-bold" style={{ color: C2 }}>99 ETB</span>
               <span className="text-muted-foreground">/month</span>
             </div>
 
@@ -86,11 +123,22 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
                   <Check className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div className="flex-1">
+
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-foreground">M-Pesa Phone Number</label>
+          <Input
+            placeholder="e.g. 0912345678 or 251912345678"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            disabled={loading}
+          />
+          <p className="text-xs text-muted-foreground">We’ll send an M-Pesa prompt to this number.</p>
+        </div>
                   <p className="text-sm font-medium text-foreground flex items-center gap-2">
                     Unlimited AI Chat
                     <Infinity className="h-4 w-4" style={{ color: C2 }} />
                   </p>
-                  <p className="text-xs text-muted-foreground">Ask Bloom as many questions as you need, 24/7</p>
+                  <p className="text-xs text-muted-foreground">Ask Herizone AI as many questions as you need, 24/7</p>
                 </div>
               </div>
 
@@ -141,13 +189,11 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
           <Button
             className="w-full text-white font-semibold h-11 rounded-full shadow-lg hover:shadow-xl transition-all"
             style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
-            onClick={() => {
-              // TODO: Implement payment flow
-              alert('Payment integration coming soon!');
-            }}
+            disabled={loading}
+            onClick={startCheckout}
           >
             <Crown className="h-4 w-4 mr-2" />
-            Upgrade to Premium
+            {loading ? 'Redirecting…' : 'Upgrade to Premium'}
           </Button>
           <Button
             variant="ghost"

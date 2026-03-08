@@ -13,7 +13,7 @@ import { translations } from '@/lib/i18n';
 import { useAppStore, type View } from '@/lib/store';
 import { BookOpen, Crown, Heart, Home, LogOut, Menu, MessageSquare, PenLine, Settings, Stethoscope, User, Users } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // ── Brand palette ─────────────────────────────────────────────────────────────
 const C1 = '#CAA69B';
@@ -21,7 +21,12 @@ const C2 = '#CB978E';
 const C3 = '#D4B9B2';
 
 export function Navbar() {
-  const { currentView, setView, currentUser, isAuthenticated, logout, language, setLanguage } = useAppStore();
+  const { currentView, setView, currentUser, isAuthenticated, logout, language, setLanguage, hydrateLanguage } = useAppStore();
+
+  // Hydrate language from localStorage after mount to avoid SSR/client mismatch
+  useEffect(() => {
+    hydrateLanguage();
+  }, [hydrateLanguage]);
 
   const T = translations[language].nav;
 

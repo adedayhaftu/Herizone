@@ -277,8 +277,7 @@ function mapExpert(e: ApiExpert & { availableHours?: string | null }): Expert {
 const welcomeMessage: ChatMessage = {
   id: 'msg-welcome',
   content:
-    "Hello! I'm Bloom 🌸, your AI support assistant. I can help with questions about pregnancy, parenting, and maternal health. My answers come from our verified knowledge base of expert advice and community wisdom. How can I help you today?",
-  isAi: true,
+    "Hello! I'm Herizone AI 🌸, your AI support assistant. I can help with questions about pregnancy, parenting, and maternal health. My answers come from our verified knowledge base of expert advice and community wisdom. How can I help you today?",  isAi: true,
   timestamp: new Date(),
 };
 
@@ -288,11 +287,12 @@ interface AppStore {
   // Language
   language: Lang;
   setLanguage: (lang: Lang) => void;
+  hydrateLanguage: () => void;
 
   // Navigation
   currentView: View;
   setView: (view: View) => void;
-
+  
   // Auth
   currentUser: User | null;
   isAuthenticated: boolean;
@@ -392,16 +392,22 @@ interface AppStore {
 
 export const useAppStore = create<AppStore>((set, get) => ({
   // ── Language ───────────────────────────────────────────────────────────────
-  language: (typeof window !== 'undefined' ? (localStorage.getItem('herizone_lang') as Lang | null) : null) ?? 'en',
+  language: 'en',
   setLanguage: (lang) => {
     if (typeof window !== 'undefined') localStorage.setItem('herizone_lang', lang);
     set({ language: lang });
+  },
+  hydrateLanguage: () => {
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('herizone_lang') as Lang | null;
+    if (stored) set({ language: stored });
   },
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   currentView: 'home',
   setView: (view) => set({ currentView: view }),
 
+  // ── Welcome overlay ───────────────────────────────────────────────────────
   // ── Auth ───────────────────────────────────────────────────────────────────
   currentUser: null,
   isAuthenticated: false,

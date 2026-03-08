@@ -93,6 +93,14 @@ export const api = {
   delete: <T>(path: string) => request<T>('DELETE', path),
 };
 
+export const paymentsApi = {
+  initializePremium: (data: { phone: string; expertId?: string }) =>
+    api.post<{ status: string; message: string; merchantRequestId: string; checkoutRequestId: string }>(
+      '/api/payments/initialize',
+      data
+    ),
+};
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string;

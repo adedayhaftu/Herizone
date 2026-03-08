@@ -1,14 +1,14 @@
 'use client';
 
-import { useAppStore } from '@/lib/store';
-import { Navbar } from '@/components/navbar';
-import { HomePage } from '@/components/home-page';
-import { CommunityFeed } from '@/components/community-feed';
-import { LearnPage } from '@/components/learn-page';
-import { ExpertsPage } from '@/components/experts-page';
-import { ProfilePage } from '@/components/profile-page';
 import { ChatbotWidget } from '@/components/chatbot-widget';
+import { CommunityFeed } from '@/components/community-feed';
+import { ExpertsPage } from '@/components/experts-page';
 import { Footer } from '@/components/footer';
+import { HomePage } from '@/components/home-page';
+import { LearnPage } from '@/components/learn-page';
+import { Navbar } from '@/components/navbar';
+import { ProfilePage } from '@/components/profile-page';
+import { useAppStore } from '@/lib/store';
 
 export default function App() {
   const { currentView } = useAppStore();

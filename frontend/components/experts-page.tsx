@@ -576,7 +576,7 @@ export function ExpertsPage() {
                     {T.upgrade_cta}
                   </a>
                   <p className="text-sm text-gray-500">
-                    {T.only_499} <span className="font-bold" style={{ color: C2 }}>{T.upgrade_price}</span>
+                    {T.only_99} <span className="font-bold" style={{ color: C2 }}>{T.upgrade_price}</span>
                   </p>
                 </div>
 

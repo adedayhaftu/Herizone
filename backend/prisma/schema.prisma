@@ -50,6 +50,8 @@ model User {
   reports        Report[]
   articles       Article[]
   expertApplications ExpertApplication[]
+  appointmentsAsClient Appointment[] @relation("AppointmentClient")
+  appointmentsAsExpert Appointment[] @relation("AppointmentExpert")
 
   @@map("users")
 }
@@ -315,4 +317,44 @@ enum ExpertApplicationStatus {
   rejected
 
   @@map("expert_application_status")
+}
+
+// ─── Appointments ───────────────────────────────────────────────────────────
+
+model Appointment {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  expertId         String             @map("expert_id") @db.Uuid
+  price            Int
+  commission       Int                @default(0)
+  mode             AppointmentMode
+  status           AppointmentStatus  @default(pending)
+  scheduledAt      DateTime?          @map("scheduled_at")
+  merchantRequestId String?           @map("merchant_request_id")
+  checkoutRequestId String?           @map("checkout_request_id")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  client User  @relation("AppointmentClient", fields: [userId], references: [id], onDelete: Cascade)
+  expert User  @relation("AppointmentExpert", fields: [expertId], references: [id], onDelete: Cascade)
+
+  @@map("appointments")
+}
+
+enum AppointmentMode {
+  chat
+  audio
+  video
+
+  @@map("appointment_mode")
+}
+
+enum AppointmentStatus {
+  pending
+  paid
+  scheduled
+  completed
+  cancelled
+
+  @@map("appointment_status")
 }

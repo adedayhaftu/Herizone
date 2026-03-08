@@ -10,6 +10,7 @@ import chatRoutes from './routes/chat.routes';
 import commentRoutes from './routes/comments.routes';
 import expertApplicationRoutes from './routes/expertApplications.routes';
 import knowledgeRoutes from './routes/knowledge.routes';
+import paymentRoutes from './routes/payments.routes';
 import postRoutes from './routes/posts.routes';
 import questionRoutes from './routes/questions.routes';
 import userRoutes from './routes/users.routes';
@@ -51,6 +52,7 @@ app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/expert-applications', expertApplicationRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // ─── Error Handling ───────────────────────────────────────────────────────────
 app.use(notFound);

@@ -106,7 +106,7 @@ export function ChatbotWidget() {
         border: `2px solid ${C3}`,
       }}
       role="dialog"
-      aria-label="Bloom AI Support Chat"
+      aria-label="Herizone AI Support Chat"
     >
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div
@@ -116,11 +116,10 @@ export function ChatbotWidget() {
         <div className="flex items-center gap-3">
           <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm ring-2 ring-white/30">
             <Heart className="h-6 w-6 text-white" fill="currentColor" />
-            <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-400 ring-2 ring-white" />
           </div>
           <div>
             <p className="text-base font-bold text-white leading-none flex items-center gap-2">
-              Bloom AI
+              Herizone AI
               <CheckCircle2 className="h-4 w-4" />
             </p>
             <p className="mt-1 text-sm text-white/90 font-medium">
@@ -307,7 +306,7 @@ export function ChatbotWidget() {
               className="mx-4 mb-3 rounded-xl border p-3 text-center"
               style={{ borderColor: `${C3}80`, background: `${C3}20` }}
             >
-              <p className="text-sm font-medium text-foreground">Please sign in to use Bloom chat.</p>
+              <p className="text-sm font-medium text-foreground">Please sign in to use Herizone chat.</p>
               <div className="mt-2 flex items-center justify-center gap-2">
                 <Button
                   onClick={() => router.push('/auth')}

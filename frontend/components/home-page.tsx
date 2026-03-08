@@ -12,6 +12,7 @@ import {
   Stethoscope,
   Users,
 } from 'lucide-react';
+import Link from 'next/link';
 
 // ── Brand palette ─────────────────────────────────────────────────────────────
 const C1 = '#CAA69B'; // warm rose-tan
@@ -268,6 +269,87 @@ export function HomePage() {
                   {text}
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PARTNER GIFTING (Husbands) ─────────────────────────────────────── */}
+      <section
+        className="relative overflow-hidden px-4 py-16 sm:px-6 lg:px-10"
+        style={{ background: 'linear-gradient(135deg, #fdf5f3 0%, #f7ece7 60%, #f1e2dc 100%)' }}
+      >
+        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-20" style={{ background: C2 }} />
+        <div className="pointer-events-none absolute -left-16 bottom-0 h-52 w-52 rounded-full opacity-20" style={{ background: C3 }} />
+
+        <div className="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-4">
+            <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-md" style={{ background: `linear-gradient(135deg, ${C3}, ${C2})` }}>
+              Partners welcome
+            </p>
+            <h2 className="text-3xl font-bold leading-tight text-gray-800 sm:text-4xl">
+              Husbands can gift care packages to the women they love
+            </h2>
+            <p className="text-base leading-relaxed text-gray-600 max-w-2xl">
+              Choose a plan, pay securely with M-Pesa, and unlock the right support — from chat check-ins to audio or video sessions with trusted experts.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {["Secure M-Pesa checkout for partners", "Options for chat, audio, or video appointments", "Expert-guided support plus AI help 24/7", "Keeps your family’s care history in one place"].map((item) => (
+                <div key={item} className="flex items-start gap-2 rounded-2xl border bg-white/80 px-3.5 py-3 shadow-sm" style={{ borderColor: `${C3}60` }}>
+                  <span className="mt-1 h-2 w-2 rounded-full" style={{ background: C2 }} />
+                  <p className="text-sm text-gray-700">{item}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:brightness-105"
+                style={{ background: `linear-gradient(135deg, ${C2}, ${C1})` }}
+              >
+                View packages
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <button
+                onClick={() => setView('experts')}
+                className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-all hover:bg-white/70"
+                style={{ borderColor: `${C3}90`, color: '#7a6360' }}
+              >
+                Meet our experts
+              </button>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div
+              className="rounded-3xl border bg-white/85 p-6 shadow-xl backdrop-blur-sm"
+              style={{ borderColor: `${C3}70`, boxShadow: '0 20px 50px rgba(203,151,142,0.18)' }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Sample package</p>
+                  <h3 className="text-2xl font-bold text-gray-800">Peace of mind</h3>
+                </div>
+                <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: C2 }}>
+                  Gift-ready
+                </span>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                <li className="flex items-center gap-2"><Heart className="h-4 w-4" style={{ color: C2 }} /> 2 x chat sessions with verified experts</li>
+                <li className="flex items-center gap-2"><MessageSquare className="h-4 w-4" style={{ color: C2 }} /> 1 x audio or video consult (choose together)</li>
+                <li className="flex items-center gap-2"><Shield className="h-4 w-4" style={{ color: C2 }} /> Priority support + AI coach, 24/7</li>
+                <li className="flex items-center gap-2"><Stethoscope className="h-4 w-4" style={{ color: C2 }} /> Personalized care notes shared with your partner</li>
+              </ul>
+
+              <div className="mt-6 flex flex-col gap-2 rounded-2xl border px-4 py-3" style={{ borderColor: `${C3}80`, background: `${C3}15` }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-700">M-Pesa ready</p>
+                  <span className="text-xs font-medium text-gray-500">Secure STK push</span>
+                </div>
+                <p className="text-xs text-gray-500">Set a budget together — we’ll apply the 5% platform fee automatically and send your partner the confirmation.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -539,7 +621,7 @@ export function HomePage() {
               <div className="mb-6">
                 <h3 className="text-2xl font-bold mb-2" style={{ color: C2 }}>{T.plan_premium_name}</h3>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-extrabold" style={{ color: C2 }}>499 ETB</span>
+                  <span className="text-5xl font-extrabold" style={{ color: C2 }}>99 ETB</span>
                   <span className="text-gray-500">/month</span>
                 </div>
               </div>

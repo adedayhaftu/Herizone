@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { translations } from '@/lib/i18n';
 import { useAppStore } from '@/lib/store';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -23,6 +23,8 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) router.replace('/');
@@ -108,6 +110,25 @@ export default function AuthPage() {
             <p className="text-base text-white/55">
               {mode === 'login' ? T.login_subtitle : T.register_subtitle}
             </p>
+            <div className="flex flex-col gap-2 rounded-xl bg-white/8 px-3 py-3 text-sm text-white/85 shadow-inner shadow-black/20">
+              <div className="font-semibold text-white">Demo credentials</div>
+              {[
+                { role: 'Freemium user', email: 'freemium@gmail.com', password: '12345678' },
+                { role: 'Premium user', email: 'fafiyusuf123456@gmail.com', password: '12345678' },
+                { role: 'Expert', email: 'fetiyaintech@gmail.com', password: '12345678' },
+                { role: 'Admin', email: 'admin@herizone.com', password: 'Admin@Herizone2026!' },
+              ].map((item) => (
+                <div key={item.role} className="flex flex-wrap items-center gap-2 text-white/80">
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white/80">
+                    {item.role}
+                  </span>
+                  <span>Email: <code className="font-mono text-white">{item.email}</code></span>
+                  <span className="hidden text-white/70 sm:inline">|</span>
+                  <span>Password: <code className="font-mono text-white">{item.password}</code></span>
+                </div>
+              ))}
+              <p className="text-[12px] text-white/60">Use these to explore without signing up.</p>
+            </div>
           </div>
 
             {/* Form */}
@@ -153,16 +174,25 @@ export default function AuthPage() {
                 <Label htmlFor="password" className="text-sm font-medium text-white/75">
                   {T.password_label}
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  className={inputCls}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                    className={inputCls + ' pr-10'}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 flex items-center text-white/70 transition hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               {/* Confirm – register only */}
@@ -171,16 +201,25 @@ export default function AuthPage() {
                   <Label htmlFor="confirm" className="text-sm font-medium text-white/75">
                     {T.confirm_password_label}
                   </Label>
-                  <Input
-                    id="confirm"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                    className={inputCls}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirm"
+                      type={showConfirm ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      className={inputCls + ' pr-10'}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((v) => !v)}
+                      className="absolute inset-y-0 right-0 flex items-center text-white/70 transition hover:text-white"
+                    >
+                      {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -219,7 +258,8 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={authLoading}
-                className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:brightness-110 disabled:opacity-60"
+                className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-60"
+                style={{ background: '#CB978E', boxShadow: '0 12px 30px rgba(203,151,142,0.32)' }}
               >
                 {authLoading ? (
                   <>
